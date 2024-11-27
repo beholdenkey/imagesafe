@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"dagger/dagger-proving-grounds/internal/dagger"
+	"fmt"
 )
 
 type DaggerProvingGrounds struct{}
@@ -41,4 +42,34 @@ func (m *DaggerProvingGrounds) Build(ctx context.Context) error {
 	_, err := dag.Container().Import(result.File()).WithExec([]string{"cat", "/etc/apk/repositories"}).Sync(ctx)
 
 	return err
+}
+
+func (m *DaggerProvingGrounds) Wolfi(ctx context.Context) error {
+	const expected = "https://packages.wolfi.dev/os\n"
+
+	actual, err := dag.Apko().Wolfi().Container().WithExec([]string{"cat", "/etc/apk/repositories"}).Stdout(ctx)
+	if err != nil {
+		return err
+	}
+
+	if actual != expected {
+		return fmt.Errorf("expected %q, got %q", expected, actual)
+	}
+
+	return nil
+}
+
+func (m *DaggerProvingGrounds) Alpine(ctx context.Context) error {
+	const expected = "https://dl-cdn.alpinelinux.org/alpine/edge/main\n"
+
+	actual, err := dag.Apko().Alpine().Container().WithExec([]string{"cat", "/etc/apk/repositories"}).Stdout(ctx)
+	if err != nil {
+		return err
+	}
+
+	if actual != expected {
+		return fmt.Errorf("expected %q, got %q", expected, actual)
+	}
+
+	return nil
 }
