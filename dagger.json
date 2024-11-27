@@ -2,5 +2,12 @@
   "name": "dagger-proving-grounds",
   "engineVersion": "v0.14.0",
   "sdk": "go",
+  "dependencies": [
+    {
+      "name": "apko",
+      "source": "github.com/jedevc/daggerverse-sagikazarmark/apko@a104424df38ca8b0b758f699dcfeeb0c2210cc2e",
+      "pin": "a104424df38ca8b0b758f699dcfeeb0c2210cc2e"
+    }
+  ],
   "source": "dagger"
 }

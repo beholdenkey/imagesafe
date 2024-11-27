@@ -7,6 +7,7 @@ Does it make sense to take the time to learn Dagger and replace it with more lin
 ## Example: Container Image Lifecycle
 
 - Build a container image
+- sign the container image using sigstore
 - Test the container image
 - Tag the container image
 - Push the container image to a registry

@@ -35,3 +35,10 @@ func (m *DaggerProvingGrounds) GrepDir(ctx context.Context, directoryArg *dagger
 		WithExec([]string{"grep", "-R", pattern, "."}).
 		Stdout(ctx)
 }
+
+func (m *DaggerProvingGrounds) Build(ctx context.Context) error {
+	result := dag.Apko().Build(dag.CurrentModule().Source().File("wolfi-base.yaml"), "latest")
+	_, err := dag.Container().Import(result.File()).WithExec([]string{"cat", "/etc/apk/repositories"}).Sync(ctx)
+
+	return err
+}
