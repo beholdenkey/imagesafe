@@ -23,3 +23,13 @@ go.work.sum
 
 # env file
 .env
+
+# Archive Types
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar
+
+# SBOM
+*.spdx.json
