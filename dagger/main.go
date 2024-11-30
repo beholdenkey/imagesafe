@@ -37,8 +37,16 @@ func (m *DaggerProvingGrounds) GrepDir(ctx context.Context, directoryArg *dagger
 		Stdout(ctx)
 }
 
-func (m *DaggerProvingGrounds) Build(ctx context.Context) error {
-	result := dag.Apko().Build(dag.CurrentModule().Source().File("wolfi-base.yaml"), "latest")
+// func (m *DaggerProvingGrounds) Build(ctx context.Context) error {
+// 	result := dag.Apko().Build(dag.CurrentModule().Source().File("wolfi-base.yaml"), "latest")
+// 	_, err := dag.Container().Import(result.File()).WithExec([]string{"cat", "/etc/apk/repositories"}).Sync(ctx)
+
+// 	return err
+// }
+
+// An Improved version of the Build function
+func (m *DaggerProvingGrounds) Build(ctx context.Context, src *dagger.File, tag string) error {
+	result := dag.Apko().Build(src, tag)
 	_, err := dag.Container().Import(result.File()).WithExec([]string{"cat", "/etc/apk/repositories"}).Sync(ctx)
 
 	return err
