@@ -8,14 +8,30 @@ contents:
   packages:
     - ca-certificates-bundle
     - wolfi-base
-    - malcontent
+    - malcontent=1.5.1
+
+annotations:
+  org.opencontainers.image.title: "malcontent"
+  org.opencontainers.image.description: "Malware Discovery Tool"
+  org.opencontainers.image.version: "1.5.1"
+  org.opencontainers.image.authors: "Justin Bailey <justthered63@gmail.com>"
+  org.opencontainers.image.url: "https://github.com/beholdenkey/imagesafe"
+  org.opencontainers.image.documentation: "https://github.com/chainguard-dev/malcontent"
+  org.opencontainers.image.source: "https://github.com/beholdenkey/imagesafe"
+  org.opencontainers.image.licenses: "Apache-2.0"
+  org.opencontainers.image.vendor: "Justin Bailey"
 
 entrypoint:
-  command: /bin/sh mal
+  command: /usr/bin/mal
+cmd: --help
 
 archs:
   - x86_64
   - aarch64
+
+environment:
+  PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
 
 accounts:
   groups:
@@ -25,3 +41,4 @@ accounts:
     - username: nonroot
       uid: 65532
       gid: 65532
+  run-as: nonroot

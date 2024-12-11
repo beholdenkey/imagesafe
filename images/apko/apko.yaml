@@ -8,11 +8,16 @@ contents:
   packages:
     - wolfi-keys
     - alpine-keys
-    - ca-certificates-bundle
+    - apko
+
 paths:
-  path: /work
-  type: directory
-  permissions: 511
+  - path: /work
+    type: directory
+    permissions: 511
+
+archs:
+  - x86_64
+  - aarch64
 
 entrypoint:
   command: /usr/bin/apko
