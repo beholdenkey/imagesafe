@@ -2,7 +2,7 @@
 
 ## ImageSafe
 
-_An opinionated collection of secure container images that eliminate CVEs from the start_
+_A collection of secure container images that eliminate CVEs from the start_
 
 </div>
 
