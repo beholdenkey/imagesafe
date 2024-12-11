@@ -1,13 +1,22 @@
-# Dagger Proving Grounds
+<div align="center">
 
-A Project to test [Dagger](https://dagger.io/) and see how it can be used to solve real-world DevOps and GitOps problems.
+## ImageSafe
 
-Does it make sense to take the time to learn Dagger and replace it with more linear build tools such as Make and Taskfile, or does it complement them and provide a way to build more complex workflows that are immutable and reproducible, regardless of the environment?
+_An opinionated collection of secure container images that eliminate CVEs from the start_
 
-## Example: Container Image Lifecycle
+</div>
 
-- Build a container image
-- sign the container image using sigstore
-- Test the container image
-- Tag the container image
-- Push the container image to a registry
+<div align="center">
+
+![GitHub Repo stars](https://img.shields.io/github/stars/beholdenkey/image-safe?style=for-the-badge)
+![GitHub forks](https://img.shields.io/github/forks/beholdenkey/image-safe?style=for-the-badge)
+
+</div>
+
+Welcome to ImageSafe, if looking for a container start by [browsing the GitHub Packages page for this repo's packages](https://github.com/beholdenkey?tab=packages&repo_name=image-safe).
+
+## Goals
+
+The goal of this project is to provide [semantically versioned](https://semver.org/), [rootless](https://rootlesscontaine.rs/), [multiple architecture](https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/) and [Common Vulnerabilities and Exposures (CVE)-free](https://cve.mitre.org/) container images.
+
+It also uses tools such as [apko](https://github.com/chainguard-dev/apko) to build Open Container Initiative (OCI) images from Alpine Package Keeper (APK) packages directly without a Dockerfile. In addition to using [Melange](https://github.com/chainguard-dev/melange) to build APK packages from source. All images are built on either a [Wolfi](https://github.com/wolfi-dev) or [Alpine Linux](https://www.alpinelinux.org/) base image.
