@@ -1,0 +1,36 @@
+---
+area/docs:
+  - changed-files:
+      - any-glob-to-any-file: "*.md"
+area/workflows:
+  - changed-files:
+      - any-glob-to-any-file: ".github/workflows/*.yaml"
+area/actions:
+  - changed-files:
+      - any-glob-to-any-file: ".github/actions/*.yaml"
+area/config:
+  - changed-files:
+      - any-glob-to-any-file: ".github/ISSUE_TEMPLATE/*"
+      - any-glob-to-any-file: ".github/labeler.yaml"
+      - any-glob-to-any-file: ".github/funding.yaml"
+      - any-glob-to-any-file: ".github/labels.yaml"
+      - any-glob-to-any-file: ".github/stale.yaml"
+area/taskfile:
+  - changed-files:
+      - any-glob-to-any-file: "Taskfile.yaml"
+      - any-glob-to-any-file: ".taskfiles/*"
+area/crossplane:
+  - changed-files:
+      - any-glob-to-any-file: "crossplane.yaml"
+      - any-glob-to-any-file: "composition.yaml"
+      - any-glob-to-any-file: "definition.yaml"
+      - any-glob-to-any-file: "xr.yaml"
+area/ci:
+  - changed-files:
+      - any-glob-to-any-file: ".ci/*"
+area/markdownlint:
+  - changed-files:
+      - any-glob-to-any-file: ".ci/markdownlint/*"
+area/pre-commit:
+  - changed-files:
+      - any-glob-to-any-file: "pre-commit-config.yaml"
