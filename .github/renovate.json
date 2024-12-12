@@ -31,7 +31,9 @@
       "automergeType": "pr"
     },
     {
-      "managers": ["gomod"],
+      "matchManagers": [
+        "gomod"
+      ],
       "enabled": false
     }
   ]
