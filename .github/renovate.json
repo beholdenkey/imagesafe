@@ -29,6 +29,10 @@
       ],
       "automerge": true,
       "automergeType": "pr"
+    },
+    {
+      "managers": ["gomod"],
+      "enabled": false
     }
   ]
 }
