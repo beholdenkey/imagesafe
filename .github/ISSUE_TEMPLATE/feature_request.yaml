@@ -1,0 +1,165 @@
+---
+name: "Feature Request"
+description: "Suggest an enhancement or new feature for this project."
+title: "Feature: [Enter a descriptive title]"
+labels: ["enhancement", "feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request Guidelines
+
+        Please follow these guidelines to help us evaluate and implement your request effectively:
+
+        - **Check** if a similar feature request already exists.
+        - **Describe** what the feature will bring to the project or community.
+        - **Define** clear acceptance criteria.
+        - **Consider** potential security, compliance, and scalability impacts.
+        - **Participate** in discussions for clarifications and follow-up.
+
+  - type: textarea
+    id: current_condition
+    attributes:
+      label: "Current Condition"
+      description: Describe the current state or problem this feature aims to solve."
+      placeholder: "What is the current problem or limitation?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: target_condition
+    attributes:
+      label: "Target Condition"
+      description: Describe the ideal state or outcome if this feature is implemented."
+      placeholder: "What should the system ideally do?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: "Proposed Solution"
+      description: Describe the solution or feature you'd like to see."
+      placeholder: "A clear and concise description of the proposed solution."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: Indicate the priority level of this feature request."
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: true
+
+  - type: textarea
+    id: business_value
+    attributes:
+      label: "Business Value"
+      description: Explain the business value or strategic benefit of this feature."
+      placeholder: "Describe the expected impact on business, users, or project goals."
+    validations:
+      required: true
+
+  - type: textarea
+    id: platform_impact
+    attributes:
+      label: "Platform Impact"
+      description: Specify the components or services that this feature may affect."
+      placeholder: "Which platform components are impacted (e.g., API Gateway, CI/CD Pipeline)?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: security_consideration
+    attributes:
+      label: "Security Consideration"
+      description: Does this feature have any security implications? If so, describe them."
+      placeholder: "Describe potential security impacts."
+    validations:
+      required: false
+
+  - type: textarea
+    id: compliance_impact
+    attributes:
+      label: "Compliance Impact"
+      description: Indicate if there are any compliance or regulatory implications."
+      placeholder: "Describe any compliance considerations."
+    validations:
+      required: false
+
+  - type: textarea
+    id: scalability_consideration
+    attributes:
+      label: "Scalability Consideration"
+      description: Describe any impact this feature might have on performance or scalability."
+      placeholder: "How will this feature impact scalability or performance?"
+    validations:
+      required: false
+
+  - type: textarea
+    id: stakeholders
+    attributes:
+      label: "Stakeholders"
+      description: Identify key stakeholders or teams impacted by this feature."
+      placeholder: "List stakeholders such as users, teams, or external partners."
+    validations:
+      required: false
+
+  - type: input
+    id: estimated_effort
+    attributes:
+      label: "Estimated Effort"
+      description: Provide an estimated effort for implementing this feature."
+      placeholder: "e.g., 5 hours, 3 days, 2 weeks"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "Dependencies"
+      description: List any dependencies or related features that might impact this request."
+      placeholder: "Mention any dependencies on other features, teams, or systems."
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternative Solutions"
+      description: Describe any alternative solutions you've considered."
+      placeholder: "A clear description of other potential solutions or workarounds."
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: Define the criteria to consider the feature complete."
+      placeholder: "A list of specific requirements for the feature (e.g., must do A, B, and C)."
+    validations:
+      required: true
+
+  - type: textarea
+    id: next_step
+    attributes:
+      label: "Next Step"
+      description: Suggest a next step or action for this feature request."
+      placeholder: "Suggested next step or experiment."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: "Additional Information"
+      description: Provide any additional context, screenshots, or supporting information."
+      placeholder: "Add any extra details or attachments."
+    validations:
+      required: false
