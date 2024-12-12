@@ -33,3 +33,6 @@ go.work.sum
 
 # SBOM
 *.spdx.json
+
+# Taskfile
+.task

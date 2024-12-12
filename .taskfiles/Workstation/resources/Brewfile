@@ -1,0 +1,4 @@
+brew "apko"
+brew "melange"
+brew "go-task"
+brew "dagger/tap/dagger"

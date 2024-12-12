@@ -1,0 +1,114 @@
+---
+name: "Bug Report"
+description: "Submit a report to help us improve."
+title: "Bug: [Enter a descriptive title]"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Reporting Guide
+
+        Please follow these guidelines to streamline the issue resolution process:
+
+        - **Search** for similar issues before creating a new one.
+        - **Provide** clear and detailed information to help us reproduce and understand the problem.
+        - **Consider** the potential security and operational impacts.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Describe the bug in detail."
+      placeholder: "A clear and concise description of what the bug is."
+    validations:
+      required: true
+
+  - type: textarea
+    id: target_condition
+    attributes:
+      label: "Target Condition"
+      description: "Describe the expected behavior or state (aligned with Toyota Kata's target condition)."
+      placeholder: "What should the system ideally do?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_condition
+    attributes:
+      label: "Current Condition"
+      description: "Describe the current behavior or state (aligned with Toyota Kata's current condition)."
+      placeholder: "What is happening now?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "Reproduction Steps"
+      render: Shell
+      description: "Provide the steps to reproduce the issue."
+      placeholder: "Steps to reproduce the behavior."
+      value: |
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: component
+    attributes:
+      label: "Component / Service Affected"
+      description: "Specify the platform component or service affected (e.g., API Gateway, CI/CD Pipeline)."
+      placeholder: "Affected component/service."
+    validations:
+      required: true
+
+  - type: textarea
+    id: severity
+    attributes:
+      label: "Severity"
+      description: "Indicate the impact level of the bug (e.g., low, medium, high, critical)."
+      placeholder: "Impact severity."
+    validations:
+      required: true
+
+  - type: textarea
+    id: security_impact
+    attributes:
+      label: "Security Impact"
+      description: "Does this issue have any security implications? If yes, describe them."
+      placeholder: "Describe potential security impacts."
+    validations:
+      required: false
+
+  - type: textarea
+    id: ci_cd_impact
+    attributes:
+      label: "CI/CD Impact"
+      description: "Specify if the issue affects the CI/CD pipeline or deployment process."
+      placeholder: "Describe any CI/CD impact."
+    validations:
+      required: false
+
+  - type: textarea
+    id: next_step
+    attributes:
+      label: "Next Step"
+      description: "Suggest a next step or action that could help resolve this issue (aligned with Toyota Kata's PDCA cycle)."
+      placeholder: "Suggested next step."
+    validations:
+      required: false
+
+  - type: textarea
+    id: os
+    attributes:
+      label: "OS / Environment"
+      description: "Provide details about the operating system, environment, or network setup."
+      placeholder: "OS / Environment details."
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: "Additional Information"
+      description: "Include any extra details such as logs, software versions, screenshots, etc."
+      placeholder: "Additional information."
