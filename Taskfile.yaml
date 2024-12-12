@@ -1,0 +1,54 @@
+---
+version: "3"
+
+set: [pipefail]
+shopt: [globstar]
+
+dotenv:
+  - .env
+
+vars:
+  MALCONTENT_VERSION: "1.5.1"
+  ARCH:
+    sh: uname -m
+  TIMESTAMP:
+    sh: date +%Y-%m-%dT%H:%M:%S
+  GITHUB_REGISTRY: "ghcr.io/beholdenkey/imagesafe"
+
+
+includes:
+  workstation:
+    taskfile: .taskfiles/Workstation/Taskfile.yaml
+    flatten: true
+  pre-commit:
+    aliases: ["pre"]
+    taskfile: .taskfiles/PreCommit/Taskfile.yaml
+  malcontent:
+    taskfile: ./images/malcontent/Taskfile.yaml
+
+tasks:
+  default:
+    desc: Show help
+    cmds:
+      - task --list
+
+  login.ghcr:
+    cmds:
+      - for:
+          matrix:
+            TOOLS: ["docker", "apko"]
+        cmd: echo "{{.GITHUB_TOKEN}}" | {{.ITEM.TOOLS}} login ghcr.io -u "{{.GITHUB_USER}}" --password-stdin
+    preconditions:
+      - sh: which docker
+        msg: "Docker is not installed. Please install Docker."
+      - sh: which apko
+        msg: "apko is not installed. Please install apko."
+
+  clean:
+    desc: Clean up build artifacts
+    sources:
+      - "**/*.spdx.json"
+      - "**/*.tar"
+    cmds:
+      - for: sources
+        cmd: rm -f "{{.ITEM}}"
