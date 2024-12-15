@@ -36,7 +36,7 @@ tasks:
     cmds:
       - task --list
 
-  login.ghcr:
+  login:ghcr:
     cmds:
       - for:
           matrix:
@@ -47,6 +47,14 @@ tasks:
         msg: "Docker is not installed. Please install Docker."
       - sh: which apko
         msg: "apko is not installed. Please install apko."
+
+  prune:images:
+    desc: Prune images
+    cmds:
+      - docker image prune -a -f
+    preconditions:
+      - sh: which docker
+        msg: "Docker is not installed. Please install Docker."
 
   clean:
     desc: Clean up build artifacts
