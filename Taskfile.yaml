@@ -10,6 +10,7 @@ dotenv:
 vars:
   # renovate: datasource=github-releases depName=chainguard-dev/malcontent
   MALCONTENT_VERSION: "1.6.0"
+  HURL_VERSION: "6.0.0"
   ARCH:
     sh: uname -m
   TIMESTAMP:
@@ -26,6 +27,8 @@ includes:
     taskfile: .taskfiles/PreCommit/Taskfile.yaml
   malcontent:
     taskfile: ./images/malcontent/Taskfile.yaml
+  hurl:
+    taskfile: ./images/hurl/Taskfile.yaml
 
 tasks:
   default:
