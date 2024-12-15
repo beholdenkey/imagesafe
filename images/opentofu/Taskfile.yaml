@@ -44,3 +44,14 @@ tasks:
     preconditions:
       - sh: which docker
         msg: "Docker is not installed. Please install Docker."
+
+  test:image:
+    dir: images/opentofu/tests
+    sources:
+      - main.tf
+    cmds:
+      - docker run --rm -v $(pwd):/tests -w /tests ghcr.io/beholdenkey/imagesafe/opentofu:1.8.7 init
+      - docker run --rm -v $(pwd):/tests -w /tests ghcr.io/beholdenkey/imagesafe/opentofu:1.8.7 apply -auto-approve
+    preconditions:
+      - sh: which apko
+        msg: "apko is not installed. Please install apko."
