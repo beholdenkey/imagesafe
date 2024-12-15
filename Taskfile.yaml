@@ -11,6 +11,7 @@ vars:
   # renovate: datasource=github-releases depName=chainguard-dev/malcontent
   MALCONTENT_VERSION: "1.6.0"
   HURL_VERSION: "6.0.0"
+  OPENTOFU_VERSION: "1.8.7"
   ARCH:
     sh: uname -m
   TIMESTAMP:
@@ -29,6 +30,8 @@ includes:
     taskfile: ./images/malcontent/Taskfile.yaml
   hurl:
     taskfile: ./images/hurl/Taskfile.yaml
+  opentofu:
+    taskfile: ./images/opentofu/Taskfile.yaml
 
 tasks:
   default:
