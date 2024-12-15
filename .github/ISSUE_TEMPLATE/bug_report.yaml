@@ -25,24 +25,6 @@ body:
       required: true
 
   - type: textarea
-    id: target_condition
-    attributes:
-      label: "Target Condition"
-      description: "Describe the expected behavior or state (aligned with Toyota Kata's target condition)."
-      placeholder: "What should the system ideally do?"
-    validations:
-      required: true
-
-  - type: textarea
-    id: current_condition
-    attributes:
-      label: "Current Condition"
-      description: "Describe the current behavior or state (aligned with Toyota Kata's current condition)."
-      placeholder: "What is happening now?"
-    validations:
-      required: true
-
-  - type: textarea
     id: reproduce
     attributes:
       label: "Reproduction Steps"
@@ -55,49 +37,11 @@ body:
       required: true
 
   - type: textarea
-    id: component
-    attributes:
-      label: "Component / Service Affected"
-      description: "Specify the platform component or service affected (e.g., API Gateway, CI/CD Pipeline)."
-      placeholder: "Affected component/service."
-    validations:
-      required: true
-
-  - type: textarea
     id: severity
     attributes:
       label: "Severity"
       description: "Indicate the impact level of the bug (e.g., low, medium, high, critical)."
       placeholder: "Impact severity."
-    validations:
-      required: true
-
-  - type: textarea
-    id: security_impact
-    attributes:
-      label: "Security Impact"
-      description: "Does this issue have any security implications? If yes, describe them."
-      placeholder: "Describe potential security impacts."
-    validations:
-      required: false
-
-  - type: textarea
-    id: ci_cd_impact
-    attributes:
-      label: "CI/CD Impact"
-      description: "Specify if the issue affects the CI/CD pipeline or deployment process."
-      placeholder: "Describe any CI/CD impact."
-    validations:
-      required: false
-
-  - type: textarea
-    id: next_step
-    attributes:
-      label: "Next Step"
-      description: "Suggest a next step or action that could help resolve this issue (aligned with Toyota Kata's PDCA cycle)."
-      placeholder: "Suggested next step."
-    validations:
-      required: false
 
   - type: textarea
     id: os
