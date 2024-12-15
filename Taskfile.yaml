@@ -9,7 +9,7 @@ dotenv:
 
 vars:
   # renovate: datasource=github-releases depName=chainguard-dev/malcontent
-  MALCONTENT_VERSION: "1.5.1"
+  MALCONTENT_VERSION: "1.6.0"
   ARCH:
     sh: uname -m
   TIMESTAMP:

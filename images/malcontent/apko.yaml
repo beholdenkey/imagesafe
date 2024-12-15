@@ -15,7 +15,7 @@ annotations:
   org.opencontainers.image.title: "malcontent"
   org.opencontainers.image.description: "Malware Discovery Tool"
   # renovate: datasource=github-releases depName=chainguard-dev/malcontent
-  org.opencontainers.image.version: "1.5.1"
+  org.opencontainers.image.version: "1.6.0"
   org.opencontainers.image.authors: "Justin Bailey <justthered63@gmail.com>"
   org.opencontainers.image.url: "https://github.com/beholdenkey/imagesafe"
   org.opencontainers.image.documentation: "https://github.com/chainguard-dev/malcontent"
