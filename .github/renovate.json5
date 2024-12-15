@@ -95,7 +95,7 @@
     {
       "customType": "regex",
       "description": ["Process custom dependencies"],
-      "fileMatch": ["^.+\\.ya?ml$"],
+      "fileMatch": ["^.+\\.ya?ml$", "(?i)^taskfile\\.ya?ml$"],
       "matchStrings": [
         // # renovate: datasource=helm depName=cilium repository=https://helm.cilium.io
         // version: 1.15.1
