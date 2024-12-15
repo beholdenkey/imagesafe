@@ -102,10 +102,9 @@
         // version: 1.15.1
         "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( repository=(?<registryUrl>\\S+))?\\n.+: (&\\S+\\s)?(?<currentValue>\\S+)",
 
-        // Matches org.opencontainers.image.version with the need to strip a leading "v"
+        // Matches package definitions with versions (e.g., - malcontent=1.5.1)
         // # renovate: datasource=github-releases depName=chainguard-dev/malcontent
-        // org.opencontainers.image.version: "v1.5.1"
-        "# renovate:\\s+datasource=(?<datasource>github-releases|github-tags)\\s+depName=(?<depName>\\S+)\\s*\\n.+:\\s*\"?(v)?(?<currentValue>[^\"]+)\"?"
+        "-\\s*(?<depName>\\S+)=(?<currentValue>\\S+)\\s*\\n"
       ],
       "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
       "versioningTemplate": "semver",
