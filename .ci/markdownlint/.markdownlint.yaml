@@ -11,3 +11,5 @@ whitespace: false
 link.no-such-reference: false
 first-line-heading: false
 no-duplicate-heading: false
+no-emphasis-as-heading: false
+no-inline-html: false

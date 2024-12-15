@@ -1,5 +1,6 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/chainguard-dev/apko/main/pkg/build/types/schema.json
+include: ../base/common.yaml
 contents:
   keyring:
     - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
@@ -16,31 +17,12 @@ annotations:
   org.opencontainers.image.description: "Malware Discovery Tool"
   # renovate: datasource=github-releases depName=chainguard-dev/malcontent
   org.opencontainers.image.version: "1.6.0"
-  org.opencontainers.image.authors: "Justin Bailey <justthered63@gmail.com>"
-  org.opencontainers.image.url: "https://github.com/beholdenkey/imagesafe"
   org.opencontainers.image.documentation: "https://github.com/chainguard-dev/malcontent"
-  org.opencontainers.image.source: "https://github.com/beholdenkey/imagesafe"
-  org.opencontainers.image.licenses: "Apache-2.0"
-  org.opencontainers.image.vendor: "Justin Bailey"
 
 entrypoint:
   command: /usr/bin/mal
 cmd: --help
 
-archs:
-  - x86_64
-  - aarch64
-
 environment:
   PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
-
-accounts:
-  groups:
-    - groupname: nonroot
-      gid: 65532
-  users:
-    - username: nonroot
-      uid: 65532
-      gid: 65532
-  run-as: nonroot

@@ -3,7 +3,7 @@
 version: "3"
 
 tasks:
-  build.image:
+  build:image:
     dir: images/malcontent
     sources:
       - apko.yaml
@@ -14,7 +14,7 @@ tasks:
       - sh: which apko
         msg: "apko is not installed. Please install apko."
 
-  load.image:
+  load:image:
     desc: Load Malcontent container image
     dir: images/malcontent
     cmds:
@@ -23,24 +23,21 @@ tasks:
       - sh: test -f malcontent-{{.MALCONTENT_VERSION}}.tar
         msg: "Malcontent container image not found. Please build it first."
 
-  publish.image:
+  publish:image:
     desc: Using apko to publish image to registry
     dir: images/malcontent
     cmds:
       - apko publish apko.yaml {{.GITHUB_REGISTRY}}/malcontent:{{.MALCONTENT_VERSION}}
 
-  tag.image:
+  tag:image:
     desc: Tag Malcontent container image
-    deps:
-      - build.image
-      - load.image
     vars:
       ARCH:
         sh: uname -m
     cmds:
       - docker tag malcontent:{{.MALCONTENT_VERSION}}-{{.ARCH}} {{.GITHUB_REGISTRY}}/malcontent:{{.MALCONTENT_VERSION}}
 
-  run.image:
+  run:image:
     desc: Run Malcontent container image
     cmds:
       - docker run --rm -it malcontent:{{.MALCONTENT_VERSION}}-{{.ARCH}}
@@ -48,12 +45,8 @@ tasks:
       - sh: which docker
         msg: "Docker is not installed. Please install Docker."
 
-  test.image:
+  test:image:
     desc: Test Malcontent container image
-    deps:
-      - build.image
-      - load.image
-      - run.image
     cmds:
       - touch report-{{.TIMESTAMP}}.md
       - docker run --rm -v $(pwd):/workspace -w /workspace malcontent:{{.MALCONTENT_VERSION}}-{{.ARCH}} --format=json --output report-{{.TIMESTAMP}}.json analyze .

@@ -1,37 +1,43 @@
-// A generated module for Imagesafe functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2024-Present Justin Bailey
 
 package main
 
 import (
-    "context"
-    "dagger/imagesafe/internal/dagger"
+	"context"
+	"dagger/imagesafe/internal/dagger"
 )
 
 type Imagesafe struct{}
 
 // Returns a container that echoes whatever string argument is provided
 func (m *Imagesafe) ContainerEcho(stringArg string) *dagger.Container {
-    return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
+	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
 }
 
 // Returns lines that match a pattern in the files of the provided Directory
 func (m *Imagesafe) GrepDir(ctx context.Context, directoryArg *dagger.Directory, pattern string) (string, error) {
-    return dag.Container().
-        From("alpine:latest").
-        WithMountedDirectory("/mnt", directoryArg).
-        WithWorkdir("/mnt").
-        WithExec([]string{"grep", "-R", pattern, "."}).
-        Stdout(ctx)
+	return dag.Container().
+		From("alpine:latest").
+		WithMountedDirectory("/mnt", directoryArg).
+		WithWorkdir("/mnt").
+		WithExec([]string{"grep", "-R", pattern, "."}).
+		Stdout(ctx)
+}
+
+func (m *Imagesafe) Build(ctx context.Context) error {
+	result := dag.Apko().Build(dag.CurrentModule().Source().File("../images/wolfi-base/apko.yaml"), "latest")
+
+	_, err := dag.Container().Import(result.File()).WithExec([]string{"cat", "/etc/apk/repositories"}).Sync(ctx)
+
+	return err
+}
+
+func (m *Imagesafe) GetUser(ctx context.Context) (string, error) {
+	return dag.Container().
+		From("cgr.dev/chainguard/wolfi-base:latest").
+		WithExec([]string{"apk", "add", "curl"}).
+		WithExec([]string{"apk", "add", "jq"}).
+		WithExec([]string{"sh", "-c", "curl https://randomuser.me/api/ | jq .results[0].name"}).
+		Stdout(ctx)
 }

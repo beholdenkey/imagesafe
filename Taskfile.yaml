@@ -10,6 +10,10 @@ dotenv:
 vars:
   # renovate: datasource=github-releases depName=chainguard-dev/malcontent
   MALCONTENT_VERSION: "1.6.0"
+  # renovate: datasource=github-releases depName=Orange-OpenSource/hurl
+  HURL_VERSION: "6.0.0"
+  # renovate: datasource=github-releases depName=opentofu/opentofu
+  OPENTOFU_VERSION: "1.8.7"
   ARCH:
     sh: uname -m
   TIMESTAMP:
@@ -26,6 +30,10 @@ includes:
     taskfile: .taskfiles/PreCommit/Taskfile.yaml
   malcontent:
     taskfile: ./images/malcontent/Taskfile.yaml
+  hurl:
+    taskfile: ./images/hurl/Taskfile.yaml
+  opentofu:
+    taskfile: ./images/opentofu/Taskfile.yaml
 
 tasks:
   default:
@@ -33,7 +41,7 @@ tasks:
     cmds:
       - task --list
 
-  login.ghcr:
+  login:ghcr:
     cmds:
       - for:
           matrix:
@@ -44,6 +52,14 @@ tasks:
         msg: "Docker is not installed. Please install Docker."
       - sh: which apko
         msg: "apko is not installed. Please install apko."
+
+  prune:images:
+    desc: Prune images
+    cmds:
+      - docker image prune -a -f
+    preconditions:
+      - sh: which docker
+        msg: "Docker is not installed. Please install Docker."
 
   clean:
     desc: Clean up build artifacts

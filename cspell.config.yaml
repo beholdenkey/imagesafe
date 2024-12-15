@@ -55,18 +55,24 @@ words:
   - datawave
   - delelete
   - deleleted
+  - depguard
   - distroless
   - dotenv
   - envcfg
   - environmentconfig
   - environmentconfigs
+  - errorf
   - finalizers
   - Fluentbit
   - fluxcd
+  - forbidigo
   - forgelabs
   - FOWNER
   - gitops
   - gnet
+  - gocritic
+  - gofumpt
+  - goheader
   - GOMAXPROCS
   - GOMEMLIMIT
   - goroutines
@@ -109,7 +115,9 @@ words:
   - opencontainers
   - openebs
   - openebses
+  - opentofu
   - osss
+  - perfsprint
   - podinfo
   - providerrevisions
   - Pulumi
@@ -129,14 +137,21 @@ words:
   - smartquotes
   - Solidtime
   - Spegel
+  - sprintf
+  - staticcheck
+  - stdlib
+  - strconcat
   - submatches
   - talosconfig
   - talosctl
   - taskfile
   - Taskfile
   - taskfiles
+  - testifylint
   - tfstate
+  - thelper
   - timepicker
+  - tparallel
   - Tradecraft
   - traefik
   - trufflehog
