@@ -1,0 +1,51 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build.image:
+    dir: images/hurl
+    sources:
+      - apko.yaml
+    cmds:
+      - for: sources
+        cmd: apko build {{.ITEM}} hurl:{{.HURL_VERSION}} hurl-{{.HURL_VERSION}}.tar
+    preconditions:
+      - sh: which apko
+        msg: "apko is not installed. Please install apko."
+
+  load.image:
+    desc: Load HURL container image
+    dir: images/hurl
+    deps:
+      - build.image
+    cmds:
+      - docker load -i hurl-{{.HURL_VERSION}}.tar
+    preconditions:
+      - sh: test -f hurl-{{.HURL_VERSION}}.tar
+        msg: "HURL container image not found. Please build it first."
+
+  publish.image:
+    desc: Using apko to publish image to registry
+    dir: images/hurl
+    cmds:
+      - apko publish apko.yaml {{.GITHUB_REGISTRY}}/hurl:{{.HURL_VERSION}}
+
+  tag.image:
+    desc: Tag Hurl container image
+    deps:
+      - build.image
+      - load.image
+    vars:
+      ARCH:
+        sh: uname -m
+    cmds:
+      - docker tag hurl:{{.HURL_VERSION}}-{{.ARCH}} {{.GITHUB_REGISTRY}}/hurl:{{.HURL_VERSION}}
+
+  run.image:
+    desc: Run Hurl container image
+    cmds:
+      - docker run --rm -it hurl:{{.HURL_VERSION}}-{{.ARCH}}
+    preconditions:
+      - sh: which docker
+        msg: "Docker is not installed. Please install Docker."
