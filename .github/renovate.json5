@@ -97,11 +97,19 @@
       "description": ["Process custom dependencies"],
       "fileMatch": ["^.+\\.ya?ml$", "(?i)^taskfile\\.ya?ml$"],
       "matchStrings": [
+        // Matches custom annotations for dependencies
         // # renovate: datasource=helm depName=cilium repository=https://helm.cilium.io
         // version: 1.15.1
-        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( repository=(?<registryUrl>\\S+))?\\n.+: (&\\S+\\s)?(?<currentValue>\\S+)"
+        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( repository=(?<registryUrl>\\S+))?\\n.+: (&\\S+\\s)?(?<currentValue>\\S+)",
+
+        // Matches org.opencontainers.image.version with the need to strip a leading "v"
+        // # renovate: datasource=github-releases depName=chainguard-dev/malcontent
+        // org.opencontainers.image.version: "v1.5.1"
+        "# renovate:\\s+datasource=(?<datasource>github-releases|github-tags)\\s+depName=(?<depName>\\S+)\\s*\\n.+:\\s*\"?(v)?(?<currentValue>[^\"]+)\"?"
       ],
-      "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}"
+      "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
+      "versioningTemplate": "semver",
+      "versionStrategy": "stripLeadingV"
     }
   ]
 }
