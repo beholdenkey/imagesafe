@@ -15,23 +15,23 @@
 package main
 
 import (
-    "context"
-    "dagger/imagesafe/internal/dagger"
+	"context"
+	"dagger/imagesafe/internal/dagger"
 )
 
 type Imagesafe struct{}
 
 // Returns a container that echoes whatever string argument is provided
 func (m *Imagesafe) ContainerEcho(stringArg string) *dagger.Container {
-    return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
+	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
 }
 
 // Returns lines that match a pattern in the files of the provided Directory
 func (m *Imagesafe) GrepDir(ctx context.Context, directoryArg *dagger.Directory, pattern string) (string, error) {
-    return dag.Container().
-        From("alpine:latest").
-        WithMountedDirectory("/mnt", directoryArg).
-        WithWorkdir("/mnt").
-        WithExec([]string{"grep", "-R", pattern, "."}).
-        Stdout(ctx)
+	return dag.Container().
+		From("alpine:latest").
+		WithMountedDirectory("/mnt", directoryArg).
+		WithWorkdir("/mnt").
+		WithExec([]string{"grep", "-R", pattern, "."}).
+		Stdout(ctx)
 }
