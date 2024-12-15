@@ -17,8 +17,6 @@ tasks:
   load:image:
     desc: Load HURL container image
     dir: images/hurl
-    deps:
-      - build.image
     cmds:
       - docker load -i hurl-{{.HURL_VERSION}}.tar
     preconditions:
@@ -33,9 +31,6 @@ tasks:
 
   tag:image:
     desc: Tag Hurl container image
-    deps:
-      - build.image
-      - load.image
     vars:
       ARCH:
         sh: uname -m

@@ -1,0 +1,46 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:image:
+    dir: images/opentofu
+    sources:
+      - apko.yaml
+    cmds:
+      - for: sources
+        cmd: apko build {{.ITEM}} opentofu:{{.OPENTOFU_VERSION}} opentofu-{{.OPENTOFU_VERSION}}.tar
+    preconditions:
+      - sh: which apko
+        msg: "apko is not installed. Please install apko."
+
+  load:image:
+    desc: Load opentofu container image
+    dir: images/opentofu
+    cmds:
+      - docker load -i opentofu-{{.OPENTOFU_VERSION}}.tar
+    preconditions:
+      - sh: test -f opentofu-{{.OPENTOFU_VERSION}}.tar
+        msg: "opentofu container image not found. Please build it first."
+
+  publish:image:
+    desc: Using apko to publish image to registry
+    dir: images/opentofu
+    cmds:
+      - apko publish apko.yaml {{.GITHUB_REGISTRY}}/opentofu:{{.OPENTOFU_VERSION}}
+
+  tag:image:
+    desc: Tag opentofu container image
+    vars:
+      ARCH:
+        sh: uname -m
+    cmds:
+      - docker tag opentofu:{{.OPENTOFU_VERSION}}-{{.ARCH}} {{.GITHUB_REGISTRY}}/opentofu:{{.OPENTOFU_VERSION}}
+
+  run:image:
+    desc: Run opentofu container image
+    cmds:
+      - docker run --rm -it opentofu:{{.OPENTOFU_VERSION}}-{{.ARCH}}
+    preconditions:
+      - sh: which docker
+        msg: "Docker is not installed. Please install Docker."
