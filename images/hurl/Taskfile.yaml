@@ -3,7 +3,7 @@
 version: "3"
 
 tasks:
-  build.image:
+  build:image:
     dir: images/hurl
     sources:
       - apko.yaml
@@ -14,7 +14,7 @@ tasks:
       - sh: which apko
         msg: "apko is not installed. Please install apko."
 
-  load.image:
+  load:image:
     desc: Load HURL container image
     dir: images/hurl
     deps:
@@ -25,13 +25,13 @@ tasks:
       - sh: test -f hurl-{{.HURL_VERSION}}.tar
         msg: "HURL container image not found. Please build it first."
 
-  publish.image:
+  publish:image:
     desc: Using apko to publish image to registry
     dir: images/hurl
     cmds:
       - apko publish apko.yaml {{.GITHUB_REGISTRY}}/hurl:{{.HURL_VERSION}}
 
-  tag.image:
+  tag:image:
     desc: Tag Hurl container image
     deps:
       - build.image
@@ -42,7 +42,7 @@ tasks:
     cmds:
       - docker tag hurl:{{.HURL_VERSION}}-{{.ARCH}} {{.GITHUB_REGISTRY}}/hurl:{{.HURL_VERSION}}
 
-  run.image:
+  run:image:
     desc: Run Hurl container image
     cmds:
       - docker run --rm -it hurl:{{.HURL_VERSION}}-{{.ARCH}}
