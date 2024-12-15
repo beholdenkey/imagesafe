@@ -8,6 +8,7 @@ dotenv:
   - .env
 
 vars:
+  # renovate: datasource=github-releases depName=chainguard-dev/malcontent
   MALCONTENT_VERSION: "1.5.1"
   ARCH:
     sh: uname -m
