@@ -24,3 +24,20 @@ func (m *Imagesafe) GrepDir(ctx context.Context, directoryArg *dagger.Directory,
 		WithExec([]string{"grep", "-R", pattern, "."}).
 		Stdout(ctx)
 }
+
+func (m *Imagesafe) Build(ctx context.Context) error {
+	result := dag.Apko().Build(dag.CurrentModule().Source().File("../images/wolfi-base/apko.yaml"), "latest")
+
+	_, err := dag.Container().Import(result.File()).WithExec([]string{"cat", "/etc/apk/repositories"}).Sync(ctx)
+
+	return err
+}
+
+func (m *Imagesafe) GetUser(ctx context.Context) (string, error) {
+	return dag.Container().
+		From("cgr.dev/chainguard/wolfi-base:latest").
+		WithExec([]string{"apk", "add", "curl"}).
+		WithExec([]string{"apk", "add", "jq"}).
+		WithExec([]string{"sh", "-c", "curl https://randomuser.me/api/ | jq .results[0].name"}).
+		Stdout(ctx)
+}
