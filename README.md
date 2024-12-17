@@ -13,13 +13,12 @@ _A collection of secure container images that eliminate CVEs from the start_
 
 </div>
 
-Welcome to ImageSafe, if looking for a container start by [browsing the GitHub Packages page for this repo's packages](https://github.com/beholdenkey?tab=packages&repo_name=imagesafe).
+Welcome to ImageSafe; if you are looking for a container, start by [browsing the GitHub Packages page for this repo's packages](https://github.com/beholdenkey?tab=packages&repo_name=imagesafe).
+
+Many of the container images I build are ones that I use in my personal projects. If you have any suggestions, please feel free to open an issue or pull request. If you have found these container images useful, please consider staring this repository.
 
 ## Goals
 
 The goal of this project is to provide [semantically versioned](https://semver.org/), [rootless](https://rootlesscontaine.rs/), [multiple architecture](https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/) and [Common Vulnerabilities and Exposures (CVE)-free](https://cve.mitre.org/) container images.
 
 It also uses tools such as [apko](https://github.com/chainguard-dev/apko) to build Open Container Initiative (OCI) images from Alpine Package Keeper (APK) packages directly without a Dockerfile. In addition to using [melange](https://github.com/chainguard-dev/melange) to build APK packages from source. All images are built on either a [Wolfi](https://github.com/wolfi-dev) or [Alpine Linux](https://www.alpinelinux.org/) base image.
-
-> [!NOTE]
-> This project is intended to be used as a way to share the container images I use in my other projects.
