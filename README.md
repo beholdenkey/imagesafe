@@ -13,7 +13,7 @@ _A collection of secure container images that eliminate CVEs from the start_
 
 </div>
 
-Welcome to ImageSafe, if looking for a container start by [browsing the GitHub Packages page for this repo's packages](https://github.com/beholdenkey?tab=packages&repo_name=image-safe).
+Welcome to ImageSafe, if looking for a container start by [browsing the GitHub Packages page for this repo's packages](https://github.com/beholdenkey?tab=packages&repo_name=imagesafe).
 
 ## Goals
 
