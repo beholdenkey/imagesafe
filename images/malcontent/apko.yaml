@@ -10,7 +10,7 @@ contents:
     - ca-certificates-bundle
     - wolfi-base
     # renovate: datasource=github-releases depName=chainguard-dev/malcontent
-    - malcontent=1.6.0
+    - malcontent=1.7.1
 
 annotations:
   org.opencontainers.image.title: "malcontent"
