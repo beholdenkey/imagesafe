@@ -16,7 +16,7 @@ package main
 
 // Here's an example of calling the Dagger Function with an invalid enum argument:
 
-// dagger call scan --ref=hello-world:latest --severity=FOO
+// dagger call scan --ref=ghcr.io/beholdenkey/imagesafe/hurl:6.0.0 --severity=LOW
 
 import (
 	"context"
@@ -46,7 +46,7 @@ func (m *Imagesafe) Scan(ctx context.Context, ref string, severity Severity) (st
 	ctr := dag.Container().From(ref)
 
 	return dag.Container().
-		From("aquasec/trivy:0.50.4").
+		From("aquasec/trivy:0.58.0").
 		WithMountedFile("/mnt/ctr.tar", ctr.AsTarball()).
 		WithMountedCache("/root/.cache", dag.CacheVolume("trivy-cache")).
 		WithExec([]string{
