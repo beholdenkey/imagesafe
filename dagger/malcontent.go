@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"dagger/imagesafe/internal/dagger"
 )
 
 func (m *Imagesafe) Scan(ctx context.Context, ref string) (string, error) {
@@ -17,4 +18,13 @@ func (m *Imagesafe) Scan(ctx context.Context, ref string) (string, error) {
 			"-i",
 			ref,
 		}).Stdout(ctx)
+}
+
+func (m *Imagesafe) Analyze(ctx context.Context, src *dagger.Directory) (string, error) {
+	return dag.Container().
+		From("ghcr.io/beholdenkey/imagesafe/malcontent:1.7.1").
+		WithMountedDirectory("/mnt", src).
+		WithWorkdir("/mnt").
+		WithExec([]string{"mal", "analyze"}).
+		Stdout(ctx)
 }
