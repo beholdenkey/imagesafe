@@ -7,6 +7,8 @@ import (
 	"context"
 )
 
+// Scan returns Malcontent scan results for a given image reference.
+// Example usage: dagger call scan --ref=ghcr.io/beholdenkey/imagesafe/hurl:6.0.0
 func (m *Imagesafe) Scan(ctx context.Context, ref string) (string, error) {
 
 	return dag.Container().
