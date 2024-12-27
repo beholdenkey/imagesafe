@@ -32,3 +32,5 @@ func (m *Imagesafe) Build(ctx context.Context) error {
 
 	return err
 }
+
+func (m *Imagesafe) Apko(ctx context.Context, ref string) (string, error) {
