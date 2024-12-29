@@ -24,9 +24,3 @@ func (m *ImageSafe) GrepDir(ctx context.Context, directoryArg *dagger.Directory,
 		WithExec([]string{"grep", "-R", pattern, "."}).
 		Stdout(ctx)
 }
-
-func (m *ImageSafe) apkoBuild(config *dagger.File, tag string) *dagger.ApkoBuildResult {
-	return dag.
-		Apko().
-		Build(config, tag)
-}
