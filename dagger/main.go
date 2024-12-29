@@ -24,11 +24,3 @@ func (m *Imagesafe) GrepDir(ctx context.Context, directoryArg *dagger.Directory,
 		WithExec([]string{"grep", "-R", pattern, "."}).
 		Stdout(ctx)
 }
-
-func (m *Imagesafe) Apko(ctx context.Context) error {
-	result := dag.Apko().Build(dag.CurrentModule().Source().File("../images/wolfi-base/apko.yaml"), "latest")
-
-	_, err := dag.Container().Import(result.File()).WithExec([]string{"cat", "/etc/apk/repositories"}).Sync(ctx)
-
-	return err
-}
