@@ -8,19 +8,25 @@ import (
 	"dagger/imagesafe/internal/dagger"
 )
 
-type Imagesafe struct{}
+type ImageSafe struct{}
 
 // Returns a container that echoes whatever string argument is provided
-func (m *Imagesafe) ContainerEcho(stringArg string) *dagger.Container {
+func (m *ImageSafe) ContainerEcho(stringArg string) *dagger.Container {
 	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
 }
 
 // Returns lines that match a pattern in the files of the provided Directory
-func (m *Imagesafe) GrepDir(ctx context.Context, directoryArg *dagger.Directory, pattern string) (string, error) {
+func (m *ImageSafe) GrepDir(ctx context.Context, directoryArg *dagger.Directory, pattern string) (string, error) {
 	return dag.Container().
 		From("alpine:latest").
 		WithMountedDirectory("/mnt", directoryArg).
 		WithWorkdir("/mnt").
 		WithExec([]string{"grep", "-R", pattern, "."}).
 		Stdout(ctx)
+}
+
+func (m *ImageSafe) apkoBuild(config *dagger.File, tag string) *dagger.ApkoBuildResult {
+	return dag.
+		Apko().
+		Build(config, tag)
 }
