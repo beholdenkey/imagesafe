@@ -36,8 +36,6 @@ includes:
     taskfile: ./images/hurl/Taskfile.yaml
   opentofu:
     taskfile: ./images/opentofu/Taskfile.yaml
-  terragrunt:
-    taskfile: ./images/terragrunt/Taskfile.yaml
 
 tasks:
   default:
