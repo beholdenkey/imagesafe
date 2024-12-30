@@ -14,8 +14,6 @@ vars:
   HURL_VERSION: "6.0.0"
   # renovate: datasource=github-releases depName=opentofu/opentofu
   OPENTOFU_VERSION: "1.8.8"
-  # renovate: datasource=github-releases depName=gruntwork-io/terragrunt
-  TERRAGRUNT_VERSION: "0.71.1"
   ARCH:
     sh: uname -m
   TIMESTAMP:
@@ -36,8 +34,6 @@ includes:
     taskfile: ./images/hurl/Taskfile.yaml
   opentofu:
     taskfile: ./images/opentofu/Taskfile.yaml
-  terragrunt:
-    taskfile: ./images/terragrunt/Taskfile.yaml
 
 tasks:
   default:
