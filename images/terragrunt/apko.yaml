@@ -20,5 +20,5 @@ annotations:
   org.opencontainers.image.documentation: "https://github.com/gruntwork-io/terragrunt"
 
 entrypoint:
-  command: /usr/bin/tofu
+  command: /usr/bin/terragrunt
 cmd: --help
