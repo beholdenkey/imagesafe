@@ -78,6 +78,7 @@ words:
   - GOMEMLIMIT
   - goroutines
   - groupname
+  - gruntwork
   - htttps
   - hyperscaler
   - Hyperscaler
@@ -148,6 +149,7 @@ words:
   - taskfile
   - Taskfile
   - taskfiles
+  - terragrunt
   - testifylint
   - tfstate
   - thelper
@@ -188,3 +190,58 @@ words:
   - xxcoredns
   - yamlfmt
   - Zitadel
+  - Trimpath
+  - ldflags
+  - Ldflags
+  - trimpath
+  - codegen
+  - iface
+  - Estar
+  - Mediatypes
+  - Ocimedia
+  - TRACEPARENT
+  - querybuilder
+  - gqlgen
+  - errgroup
+  - QLID
+  - gctx
+  - genqlient
+  - callpbv
+  - nolint
+  - gosec
+  - sdklog
+  - sdktrace
+  - otlplog
+  - otlploggrpc
+  - otlploghttp
+  - otlpmetric
+  - otlpmetricgrpc
+  - otlpmetrichttp
+  - otlptrace
+  - otlptracegrpc
+  - otlptracehttp
+  - sdkmetric
+  - semconv
+  - dupl
+  - otlptracehttp
+  - otlpmetricgrpc
+  - otlpmetrichttp
+  - iostat
+  - readbytes
+  - writebytes
+  - cpustat
+  - UCUM
+  - rerr
+  - metricdata
+  - collogspb
+  - otlpcommonv
+  - otlplogsv
+  - otlpmetricsv
+  - otlpresourcev
+  - otlptracev
+  - BOOLSLICE
+  - STRINGSLICE
+  - sctx
+  - Kvlist
+  - ungeneric
+  - ehdp

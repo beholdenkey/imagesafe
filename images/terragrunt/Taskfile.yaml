@@ -1,0 +1,46 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:image:
+    dir: images/terragrunt
+    sources:
+      - apko.yaml
+    cmds:
+      - for: sources
+        cmd: apko build {{.ITEM}} terragrunt:{{.terragrunt_VERSION}} terragrunt-{{.terragrunt_VERSION}}.tar
+    preconditions:
+      - sh: which apko
+        msg: "apko is not installed. Please install apko."
+
+  load:image:
+    desc: Load terragrunt container image
+    dir: images/terragrunt
+    cmds:
+      - docker load -i terragrunt-{{.TERRAGRUNT_VERSION}}.tar
+    preconditions:
+      - sh: test -f terragrunt-{{.TERRAGRUNT_VERSION}}.tar
+        msg: "terragrunt container image not found. Please build it first."
+
+  publish:image:
+    desc: Using apko to publish image to registry
+    dir: images/terragrunt
+    cmds:
+      - apko publish apko.yaml {{.GITHUB_REGISTRY}}/terragrunt:{{.TERRAGRUNT_VERSION}}
+
+  tag:image:
+    desc: Tag terragrunt container image
+    vars:
+      ARCH:
+        sh: uname -m
+    cmds:
+      - docker tag terragrunt:{{.TERRAGRUNT_VERSION}}-{{.ARCH}} {{.GITHUB_REGISTRY}}/terragrunt:{{.TERRAGRUNT_VERSION}}
+
+  run:image:
+    desc: Run terragrunt container image
+    cmds:
+      - docker run --rm -it terragrunt:{{.TERRAGRUNT_VERSION}}-{{.ARCH}}
+    preconditions:
+      - sh: which docker
+        msg: "Docker is not installed. Please install Docker."
