@@ -16,7 +16,7 @@ annotations:
   org.opencontainers.image.title: "OpenTofu"
   org.opencontainers.image.description: "The open source infrastructure as code tool."
   # renovate: datasource=github-releases depName=opentofu/opentofu
-  org.opencontainers.image.version: "1.8.8"
+  org.opencontainers.image.version: "1.9.0"
   org.opencontainers.image.documentation: "https://github.com/opentofu/opentofu"
 
 entrypoint:
