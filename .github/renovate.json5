@@ -1,119 +1,114 @@
 {
-    "extends": [
-      "config:recommended",
-      "docker:enableMajor",
-      ":disableRateLimiting",
-      ":dependencyDashboard",
-      ":enablePreCommit",
-      ":semanticCommits",
-      ":automergeBranch"
-    ],
-    "dependencyDashboardTitle": "Dependency Management Dashboard 🤖",
-    "suppressNotifications": [
-      "prEditedNotification",
-      "prIgnoreNotification"
-    ],
-    "rebaseWhen": "conflicted",
-    "commitBodyTable": true,
-    "platformCommit": "enabled",
-    "gitAuthor": "Justin Bailey <beholdenkey@users.noreply.github.com>",
-    "commitBody": "Signed-off-by: Justin Bailey <beholdenkey@users.noreply.github.com>",
-    "timezone": "America/New_York",
-    "commitMessageTopic": "{{depName}}",
-    "commitMessageExtra": "to {{newVersion}}",
-    "commitMessageSuffix": "",
-    "platformAutomerge": true,
-    "packageRules": [
-      {
-        "matchUpdateTypes": [
-          "patch",
-          "pin",
-          "digest"
-        ],
-        "automerge": true,
-        "automergeType": "pr"
-      },
-      {
-        "matchManagers": [
-          "gomod"
-        ],
-        "enabled": false
-      },
-      {
-        "description": ["Auto merge Github Actions"],
-        "matchManagers": ["github-actions"],
-        "automerge": true,
-        "automergeType": "branch",
-        "ignoreTests": true,
-        "matchUpdateTypes": ["minor", "patch"]
-      },
-      {
-        "matchDatasources": ["github-releases", "github-tags"],
-        "matchUpdateTypes": ["major"],
-        "commitMessagePrefix": "feat(github-release)!: "
-      },
-      {
-        "matchDatasources": ["github-releases", "github-tags"],
-        "matchUpdateTypes": ["minor"],
-        "semanticCommitType": "feat",
-        "semanticCommitScope": "github-release"
-      },
-      {
-        "matchDatasources": ["github-releases", "github-tags"],
-        "matchUpdateTypes": ["patch"],
-        "semanticCommitType": "fix",
-        "semanticCommitScope": "github-release"
-      },
-      {
-        "matchManagers": ["github-actions"],
-        "matchUpdateTypes": ["major"],
-        "commitMessagePrefix": "feat(github-action)!: "
-      },
-      {
-        "matchManagers": ["github-actions"],
-        "matchUpdateTypes": ["minor"],
-        "semanticCommitType": "feat",
-        "semanticCommitScope": "github-action"
-      },
-      {
-        "matchManagers": ["github-actions"],
-        "matchUpdateTypes": ["patch"],
-        "semanticCommitType": "fix",
-        "semanticCommitScope": "github-action"
-      },
-      {
-        "matchDatasources": ["github-releases", "github-tags"],
-        "addLabels": ["renovate/github-release"]
-      },
-      {
-        "matchManagers": ["github-actions"],
-        "addLabels": ["renovate/github-action"]
-      }
-    ],
-    "customManagers": [
-      {
-        "customType": "regex",
-        "description": ["Process custom dependencies"],
-        "fileMatch": ["^.+\\.ya?ml$", "(?i)^taskfile\\.ya?ml$"],
-        "matchStrings": [
-          // Matches custom annotations for dependencies
-          // # renovate: datasource=helm depName=cilium repository=https://helm.cilium.io
-          // version: 1.15.1
-          "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( repository=(?<registryUrl>\\S+))?\\n.+: (&\\S+\\s)?(?<currentValue>\\S+)",
+  "extends": [
+    "config:recommended",
+    "docker:enableMajor",
+    ":disableRateLimiting",
+    ":dependencyDashboard",
+    ":enablePreCommit",
+    ":semanticCommits",
+    ":automergeBranch"
+  ],
+  "dependencyDashboardTitle": "Dependency Management Dashboard 🤖",
+  "suppressNotifications": [
+    "prEditedNotification",
+    "prIgnoreNotification"
+  ],
+  "rebaseWhen": "conflicted",
+  "commitBodyTable": true,
+  "platformCommit": "enabled",
+  "gitAuthor": "Justin Bailey <beholdenkey@users.noreply.github.com>",
+  "commitBody": "Signed-off-by: Justin Bailey <beholdenkey@users.noreply.github.com>",
+  "timezone": "America/New_York",
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to {{newVersion}}",
+  "commitMessageSuffix": "",
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "enabled": false
+    },
+    {
+      "description": ["Auto merge Github Actions"],
+      "matchManagers": ["github-actions"],
+      "automerge": true,
+      "automergeType": "branch",
+      "ignoreTests": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "matchDatasources": ["github-releases", "github-tags"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(github-release)!: "
+    },
+    {
+      "matchDatasources": ["github-releases", "github-tags"],
+      "matchUpdateTypes": ["minor"],
+      "semanticCommitType": "feat",
+      "semanticCommitScope": "github-release"
+    },
+    {
+      "matchDatasources": ["github-releases", "github-tags"],
+      "matchUpdateTypes": ["patch"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "github-release"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(github-action)!: "
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor"],
+      "semanticCommitType": "feat",
+      "semanticCommitScope": "github-action"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "github-action"
+    },
+    {
+      "matchDatasources": ["github-releases", "github-tags"],
+      "addLabels": ["renovate/github-release"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "addLabels": ["renovate/github-action"]
+    }
+  ],
+  // custom managers
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": ["Process custom dependencies"],
+      "fileMatch": ["^.+\\.ya?ml$", "(?i)^taskfile\\.ya?ml$"],
+      "matchStrings": [
+        // Matches custom annotations for dependencies
+        // # renovate: datasource=helm depName=cilium repository=https://helm.cilium.io
+        // version: 1.15.1
+        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( repository=(?<registryUrl>\\S+))?\\n.+: (&\\S+\\s)?(?<currentValue>\\S+)",
 
-          // # renovate: datasource=github-releases depName=chainguard-dev/malcontent
-          // org.opencontainers.image.version: "v1.5.1"
-          "# renovate:\\s+datasource=(?<datasource>github-releases|github-tags)\\s+depName=(?<depName>\\S+)\\s*\\n.+:\\s*\"?(v)?(?<currentValue>[^\"]+)\"?",
-
-          // Match the dependency declaration (e.g., - opentofu=1.8.7)
-          "-\\s+(?<depName>\\S+)=\\s*(?<currentValue>\\S+)",
-
-          // Match the annotation (e.g., org.opencontainers.image.version: \"1.9.0\")
-          "org\\.opencontainers\\.image\\.version:\\s*\\\"?(v)?(?<currentValue>[^\\\"]+)\\\"?"
-        ],
-        "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
-        "versioningTemplate": "semver",
-        "versionStrategy": "stripLeadingV"
-      }
-    ]
-  }
+        // # renovate: datasource=github-releases depName=chainguard-dev/malcontent
+        // org.opencontainers.image.version: "v1.5.1"
+        "# renovate:\\s+datasource=(?<datasource>github-releases|github-tags)\\s+depName=(?<depName>\\S+)\\s*\\n.+:\\s*\"?(v)?(?<currentValue>[^\"]+)\"?"
+      ],
+      "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
+      "versioningTemplate": "semver",
+      "versionStrategy": "stripLeadingV"
+    }
+  ]
+}
