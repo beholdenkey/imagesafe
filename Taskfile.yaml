@@ -13,7 +13,7 @@ vars:
   # renovate: datasource=github-releases depName=Orange-OpenSource/hurl
   HURL_VERSION: "6.0.0"
   # renovate: datasource=github-releases depName=opentofu/opentofu
-  OPENTOFU_VERSION: "1.9.0"
+  OPENTOFU_VERSION: "1.8.8"
   ARCH:
     sh: uname -m
   TIMESTAMP:
