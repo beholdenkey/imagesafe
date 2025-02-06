@@ -3,7 +3,7 @@
 version: "3"
 
 tasks:
-  build:image:
+  build.image:
     dir: images/opentofu
     sources:
       - apko.yaml
@@ -14,7 +14,7 @@ tasks:
       - sh: which apko
         msg: "apko is not installed. Please install apko."
 
-  load:image:
+  load.image:
     desc: Load opentofu container image
     dir: images/opentofu
     cmds:
@@ -23,13 +23,13 @@ tasks:
       - sh: test -f opentofu-{{.OPENTOFU_VERSION}}.tar
         msg: "opentofu container image not found. Please build it first."
 
-  publish:image:
+  publish.image:
     desc: Using apko to publish image to registry
     dir: images/opentofu
     cmds:
       - apko publish apko.yaml {{.GITHUB_REGISTRY}}/opentofu:{{.OPENTOFU_VERSION}}
 
-  tag:image:
+  tag.image:
     desc: Tag opentofu container image
     vars:
       ARCH:
@@ -37,7 +37,7 @@ tasks:
     cmds:
       - docker tag opentofu:{{.OPENTOFU_VERSION}}-{{.ARCH}} {{.GITHUB_REGISTRY}}/opentofu:{{.OPENTOFU_VERSION}}
 
-  run:image:
+  run.image:
     desc: Run opentofu container image
     cmds:
       - docker run --rm -it opentofu:{{.OPENTOFU_VERSION}}-{{.ARCH}}
@@ -45,7 +45,7 @@ tasks:
       - sh: which docker
         msg: "Docker is not installed. Please install Docker."
 
-  test:image:
+  test.image:
     dir: images/opentofu/tests
     sources:
       - main.tf

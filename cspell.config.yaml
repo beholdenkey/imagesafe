@@ -23,12 +23,15 @@ words:
   - aquasec
   - archs
   - Automerge
+  - autoupdate
   - awsuswest
   - bargauge
   - behaviour
   - beholdenkey
   - Beyla
+  - BOOLSLICE
   - cadvisor
+  - callpbv
   - certmanager
   - certmanagerconfig
   - certwatcher
@@ -39,6 +42,8 @@ words:
   - clusterrolebinding
   - clusterrolebindings
   - clusterroles
+  - codegen
+  - collogspb
   - compositeresourcedefinition
   - compositeresourcedefinitions
   - Containeer
@@ -47,6 +52,7 @@ words:
   - Coredns
   - cpus
   - CPUS
+  - cpustat
   - crds
   - creds
   - crossplane
@@ -59,16 +65,22 @@ words:
   - depguard
   - distroless
   - dotenv
+  - dupl
+  - ehdp
   - envcfg
   - environmentconfig
   - environmentconfigs
+  - errgroup
   - errorf
+  - Estar
   - finalizers
   - Fluentbit
   - fluxcd
   - forbidigo
   - forgelabs
   - FOWNER
+  - gctx
+  - genqlient
   - gitops
   - gnet
   - gocritic
@@ -77,30 +89,39 @@ words:
   - GOMAXPROCS
   - GOMEMLIMIT
   - goroutines
+  - gosec
+  - gqlgen
   - groupname
   - gruntwork
   - htttps
   - hyperscaler
   - Hyperscaler
+  - iface
   - imagesafe
   - incluster
   - ingresscert
   - inotify
   - Invocatios
+  - iostat
   - ipairs
   - jsonnet
   - kpfnk
   - Kubebuilder
   - kubeconfig
   - Kubelet
+  - Kvlist
   - Kyverno
   - lameduck
+  - ldflags
+  - Ldflags
   - loadbalance
   - managedresource
   - markdownlint
   - markus
   - mayastor
+  - Mediatypes
   - memstats
+  - metricdata
   - metricsserver
   - mjmc
   - moa
@@ -111,27 +132,52 @@ words:
   - nfscsi
   - nfscsiconfig
   - nfsvers
+  - nolint
   - nonroot
   - NOTHANKS
   - nzhjh
+  - Ocimedia
   - opencontainers
   - openebs
   - openebses
   - opentofu
   - osss
+  - otlpcommonv
+  - otlplog
+  - otlploggrpc
+  - otlploghttp
+  - otlplogsv
+  - otlpmetric
+  - otlpmetricgrpc
+  - otlpmetrichttp
+  - otlpmetricsv
+  - otlpresourcev
+  - otlptrace
+  - otlptracegrpc
+  - otlptracehttp
+  - otlptracev
   - perfsprint
   - podinfo
   - providerrevisions
   - Pulumi
   - Pyroscope
+  - QLID
   - Quentile
+  - querybuilder
+  - readbytes
   - readyz
+  - rerr
   - resolv
   - rgba
   - rolebindings
   - Rollouts
   - schweig
+  - sctx
+  - sdklog
+  - sdkmetric
+  - sdktrace
   - seccomp
+  - semconv
   - serviceaccounts
   - servicelb
   - SETGID
@@ -143,6 +189,7 @@ words:
   - staticcheck
   - stdlib
   - strconcat
+  - STRINGSLICE
   - submatches
   - talosconfig
   - talosctl
@@ -155,10 +202,15 @@ words:
   - thelper
   - timepicker
   - tparallel
+  - TRACEPARENT
   - Tradecraft
   - traefik
+  - trimpath
+  - Trimpath
   - trufflehog
   - trufflesecurity
+  - UCUM
+  - ungeneric
   - upbound
   - upjet
   - uptest
@@ -169,6 +221,7 @@ words:
   - Volsync
   - wolfi
   - workqueue
+  - writebytes
   - wsize
   - xargocd
   - xcertmanager
@@ -190,58 +243,3 @@ words:
   - xxcoredns
   - yamlfmt
   - Zitadel
-  - Trimpath
-  - ldflags
-  - Ldflags
-  - trimpath
-  - codegen
-  - iface
-  - Estar
-  - Mediatypes
-  - Ocimedia
-  - TRACEPARENT
-  - querybuilder
-  - gqlgen
-  - errgroup
-  - QLID
-  - gctx
-  - genqlient
-  - callpbv
-  - nolint
-  - gosec
-  - sdklog
-  - sdktrace
-  - otlplog
-  - otlploggrpc
-  - otlploghttp
-  - otlpmetric
-  - otlpmetricgrpc
-  - otlpmetrichttp
-  - otlptrace
-  - otlptracegrpc
-  - otlptracehttp
-  - sdkmetric
-  - semconv
-  - dupl
-  - otlptracehttp
-  - otlpmetricgrpc
-  - otlpmetrichttp
-  - iostat
-  - readbytes
-  - writebytes
-  - cpustat
-  - UCUM
-  - rerr
-  - metricdata
-  - collogspb
-  - otlpcommonv
-  - otlplogsv
-  - otlpmetricsv
-  - otlpresourcev
-  - otlptracev
-  - BOOLSLICE
-  - STRINGSLICE
-  - sctx
-  - Kvlist
-  - ungeneric
-  - ehdp
