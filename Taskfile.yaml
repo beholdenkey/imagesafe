@@ -8,6 +8,8 @@ dotenv:
   - .env
 
 vars:
+  # renovate: datasource=github-releases depName=chainguard-dev/apko
+  APKO_VERSION: "0.27.4"
   # renovate: datasource=github-releases depName=chainguard-dev/malcontent
   MALCONTENT_VERSION: "1.10.3"
   # renovate: datasource=github-releases depName=Orange-OpenSource/hurl
@@ -34,6 +36,8 @@ includes:
     taskfile: ./images/hurl/Taskfile.yaml
   opentofu:
     taskfile: ./images/opentofu/Taskfile.yaml
+  apko:
+    taskfile: ./images/apko/Taskfile.yaml
 
 tasks:
   default:
