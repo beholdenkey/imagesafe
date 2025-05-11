@@ -10,7 +10,7 @@ contents:
     - ca-certificates-bundle
     - wolfi-base
     # renovate: datasource=github-releases depName=opentofu/opentofu
-    - opentofu=1.8.8
+    - opentofu=1.9.1
 
 annotations:
   org.opencontainers.image.title: "OpenTofu"

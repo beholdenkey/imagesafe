@@ -9,13 +9,13 @@ contents:
   packages:
     - ca-certificates-bundle
     - wolfi-base
-    # renovate: datasource=repology depName=malcontent versioning=loose
+    # renovate: datasource=github-releases depName=chainguard-dev/malcontent
     - malcontent=1.7.1
 
 annotations:
   org.opencontainers.image.title: "malcontent"
   org.opencontainers.image.description: "Malware Discovery Tool"
-  # renovate: datasource=repology depName=malcontent versioning=loose
+  # renovate: datasource=github-releases depName=chainguard-dev/malcontent
   org.opencontainers.image.version: "1.7.1"
   org.opencontainers.image.documentation: "https://github.com/chainguard-dev/malcontent"
 

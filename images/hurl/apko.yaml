@@ -8,7 +8,7 @@ contents:
   packages:
     - alpine-base
     # renovate: datasource=github-releases depName=Orange-OpenSource/hurl
-    - hurl=6.0.0
+    - hurl=6.1.1
 
 annotations:
   org.opencontainers.image.title: "Hurl"
