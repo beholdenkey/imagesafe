@@ -16,6 +16,7 @@ vars:
   HURL_VERSION: "6.1.1"
   # renovate: datasource=github-releases depName=opentofu/opentofu
   OPENTOFU_VERSION: "1.9.1"
+  JELLYFIN_VERSION: "10.10.7"
   ARCH:
     sh: uname -m
   TIMESTAMP:
@@ -38,6 +39,8 @@ includes:
     taskfile: ./images/opentofu/Taskfile.yaml
   apko:
     taskfile: ./images/apko/Taskfile.yaml
+  jellyfin:
+    taskfile: ./images/jellyfin/Taskfile.yaml
 
 tasks:
   default:
