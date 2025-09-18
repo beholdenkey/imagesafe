@@ -6,77 +6,12 @@ set:
 shopt:
   - globstar
 
-dotenv:
-  - .env
-
-vars:
-  # renovate: datasource=github-releases depName=chainguard-dev/apko
-  APKO_VERSION: "0.27.4"
-  # renovate: datasource=github-releases depName=chainguard-dev/malcontent
-  MALCONTENT_VERSION: "1.10.3"
-  # renovate: datasource=github-releases depName=Orange-OpenSource/hurl
-  HURL_VERSION: "6.1.1"
-  # renovate: datasource=github-releases depName=opentofu/opentofu
-  OPENTOFU_VERSION: "1.9.1"
-  JELLYFIN_VERSION: "10.10.7"
-  ARCH:
-    sh: uname -m
-  TIMESTAMP:
-    sh: date +%Y-%m-%dT%H:%M:%S
-  GITHUB_REGISTRY: "ghcr.io/beholdenkey/imagesafe"
-
 includes:
   workstation:
     taskfile: .taskfiles/Workstation/Taskfile.yaml
     flatten: true
-  pre-commit:
-    aliases:
-      - "pre"
-    taskfile: .taskfiles/PreCommit/Taskfile.yaml
-  malcontent:
-    taskfile: ./images/malcontent/Taskfile.yaml
-  hurl:
-    taskfile: ./images/hurl/Taskfile.yaml
-  opentofu:
-    taskfile: ./images/opentofu/Taskfile.yaml
-  apko:
-    taskfile: ./images/apko/Taskfile.yaml
-  jellyfin:
-    taskfile: ./images/jellyfin/Taskfile.yaml
-
 tasks:
   default:
     desc: Show help
     cmds:
       - task --list
-
-  login:ghcr:
-    cmds:
-      - for:
-          matrix:
-            TOOLS:
-              - "docker"
-              - "apko"
-        cmd: echo "{{.GITHUB_TOKEN}}" | {{.ITEM.TOOLS}} login ghcr.io -u "{{.GITHUB_USER}}" --password-stdin
-    preconditions:
-      - sh: which docker
-        msg: "Docker is not installed. Please install Docker."
-      - sh: which apko
-        msg: "apko is not installed. Please install apko."
-
-  prune:images:
-    desc: Prune images
-    cmds:
-      - docker image prune -a -f
-    preconditions:
-      - sh: which docker
-        msg: "Docker is not installed. Please install Docker."
-
-  clean:
-    desc: Clean up build artifacts
-    sources:
-      - "**/*.spdx.json"
-      - "**/*.tar"
-    cmds:
-      - for: sources
-        cmd: rm -f "{{.ITEM}}"
