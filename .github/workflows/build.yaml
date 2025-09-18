@@ -1,0 +1,28 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - withdrawn-images.txt
+      - withdrawn-repos.txt
+      - reinstated-images.txt
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Specific image name to build"
+        type: string
+        required: false
+        default: ""
+
+concurrency:
+  group: ${{ inputs.only || 'release' }}
+  cancel-in-progress: false
+
+jobs:
