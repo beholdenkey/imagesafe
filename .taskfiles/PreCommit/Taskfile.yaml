@@ -4,7 +4,8 @@ version: "3"
 tasks:
   init:
     desc: Initialize pre-commit hooks
-    deps: [update]
+    deps:
+      - update
     cmds:
       - pre-commit install --install-hooks
     preconditions:
