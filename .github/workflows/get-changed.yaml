@@ -39,7 +39,7 @@ jobs:
         name: Determine changed images
         id: changed-containers
         shell: bash
-        run: |
+        run: |-
           IMAGES=$( \
               echo '${{ steps.changed-files.outputs.all_changed_and_modified_files }}' \
                   | jq --raw-output 'map(sub("^images/"; "")) | join(",")' \

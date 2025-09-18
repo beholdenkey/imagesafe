@@ -2,7 +2,9 @@
 - name: area/docs
   color: "0075ca"
   description: "Documentation related changes"
-  aliases: ["documentation", "doc"]
+  aliases:
+    - "documentation"
+    - "doc"
 
 - name: area/terraform
   color: "ff7f50"
@@ -27,27 +29,32 @@
 - name: area/ci
   color: "1d76db"
   description: "Continuous Integration configuration and process related changes"
-  aliases: ["continuous-integration"]
+  aliases:
+    - "continuous-integration"
 
 - name: area/cd
   color: "00bfff"
   description: "Continuous Deploy configuration and process related changes"
-  aliases: ["continuous-deployment"]
+  aliases:
+    - "continuous-deployment"
 
 - name: area/workflows
   color: "f9d033"
   description: "GitHub workflows related changes"
-  aliases: ["github-workflow"]
+  aliases:
+    - "github-workflow"
 
 - name: area/actions
   color: "5319e7"
   description: "GitHub actions related changes"
-  aliases: ["actions"]
+  aliases:
+    - "actions"
 
 - name: area/config
   color: "8b4513"
   description: "Configuration files related changes"
-  aliases: ["configuration"]
+  aliases:
+    - "configuration"
 
 - name: area/backend
   color: "32cd32"
@@ -64,17 +71,21 @@
 - name: type/bug
   color: "d73a4a"
   description: "Something is not working"
-  aliases: ["defect", "issue"]
+  aliases:
+    - "defect"
+    - "issue"
 
 - name: type/feature
   color: "a2eeef"
   description: "New feature or request"
-  aliases: ["enhancement"]
+  aliases:
+    - "enhancement"
 
 - name: type/docs
   color: "0075ca"
   description: "Documentation-related change"
-  aliases: ["doc-update"]
+  aliases:
+    - "doc-update"
 
 - name: type/security
   color: "b60205"
@@ -83,7 +94,9 @@
 - name: type/testing
   color: "fbca04"
   description: "Testing-related change"
-  aliases: ["tests", "qa"]
+  aliases:
+    - "tests"
+    - "qa"
 
 - name: type/chore
   color: "96f2d7"
@@ -120,22 +133,26 @@
 - name: priority/critical
   color: "ff6347"
   description: "Immediate attention required"
-  aliases: ["critical-priority"]
+  aliases:
+    - "critical-priority"
 
 - name: priority/high
   color: "ffb266"
   description: "Needs to be worked on soon"
-  aliases: ["high-priority"]
+  aliases:
+    - "high-priority"
 
 - name: priority/medium
   color: "e4e669"
   description: "Can be deferred for later"
-  aliases: ["medium-priority"]
+  aliases:
+    - "medium-priority"
 
 - name: priority/low
   color: "c7e9b4"
   description: "Low priority task"
-  aliases: ["low-priority"]
+  aliases:
+    - "low-priority"
 
 - name: effort/1
   color: "d4f4fa"

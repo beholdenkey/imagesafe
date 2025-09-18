@@ -2,7 +2,9 @@
 name: "New Container Image"
 description: "Request a new container image to be supported"
 title: "Feature: [Enter a descriptive title]"
-labels: ["enhancement", "feature request"]
+labels:
+  - "enhancement"
+  - "feature request"
 assignees: "beholdenkey"
 body:
   - type: markdown

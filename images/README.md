@@ -8,19 +8,19 @@ The [Common](../images/base/common.yaml) configuration file is the base configur
 ```yaml
 include: ../base/common.yaml
 contents:
-  keyring:
-    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
-  repositories:
-    - https://packages.wolfi.dev/os
-  packages:
+    keyring:
+        - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+        - https://packages.wolfi.dev/os
+    packages:
 
 annotations:
-  org.opencontainers.image.title: ""
-  org.opencontainers.image.description: ""
-  org.opencontainers.image.version: ""
-  org.opencontainers.image.documentation: ""
+    org.opencontainers.image.title: ""
+    org.opencontainers.image.description: ""
+    org.opencontainers.image.version: ""
+    org.opencontainers.image.documentation: ""
 
 entrypoint:
-  command:
+    command:
 cmd:
 ```

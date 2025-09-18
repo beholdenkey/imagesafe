@@ -1,8 +1,10 @@
 ---
 version: "3"
 
-set: [pipefail]
-shopt: [globstar]
+set:
+  - pipefail
+shopt:
+  - globstar
 
 dotenv:
   - .env
@@ -23,13 +25,13 @@ vars:
     sh: date +%Y-%m-%dT%H:%M:%S
   GITHUB_REGISTRY: "ghcr.io/beholdenkey/imagesafe"
 
-
 includes:
   workstation:
     taskfile: .taskfiles/Workstation/Taskfile.yaml
     flatten: true
   pre-commit:
-    aliases: ["pre"]
+    aliases:
+      - "pre"
     taskfile: .taskfiles/PreCommit/Taskfile.yaml
   malcontent:
     taskfile: ./images/malcontent/Taskfile.yaml
@@ -52,7 +54,9 @@ tasks:
     cmds:
       - for:
           matrix:
-            TOOLS: ["docker", "apko"]
+            TOOLS:
+              - "docker"
+              - "apko"
         cmd: echo "{{.GITHUB_TOKEN}}" | {{.ITEM.TOOLS}} login ghcr.io -u "{{.GITHUB_USER}}" --password-stdin
     preconditions:
       - sh: which docker

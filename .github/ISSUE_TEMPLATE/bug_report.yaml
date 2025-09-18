@@ -2,7 +2,8 @@
 name: "Bug Report"
 description: "Submit a report to help us improve."
 title: "Bug: [Enter a descriptive title]"
-labels: ["bug"]
+labels:
+  - "bug"
 body:
   - type: markdown
     attributes:

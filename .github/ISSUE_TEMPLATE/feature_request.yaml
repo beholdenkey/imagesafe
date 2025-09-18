@@ -2,7 +2,9 @@
 name: "Feature Request"
 description: "Suggest an enhancement or new feature for this project."
 title: "Feature: [Enter a descriptive title]"
-labels: ["enhancement", "feature request"]
+labels:
+  - "enhancement"
+  - "feature request"
 body:
   - type: markdown
     attributes:
@@ -64,7 +66,6 @@ body:
       placeholder: "Mention any dependencies on other features, teams, or systems."
     validations:
       required: false
-
 
   - type: textarea
     id: acceptance_criteria
