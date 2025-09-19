@@ -70,10 +70,11 @@ jobs:
           restore-keys: |
             apk-${{ runner.os }}-
 
+      # Use container-visible paths for both SBOMs and image refs
       - name: Make output dirs (SBOM & image refs)
         run: |
-          mkdir -p "$RUNNER_TEMP/sbom"
-          mkdir -p "$RUNNER_TEMP/apko"
+          mkdir -p /tmp/sbom
+          mkdir -p /tmp/apko
 
       - name: Build ${{ matrix.name }}
         id: apko
@@ -84,15 +85,15 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ matrix.version }}
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
-          sbom-path: ${{ runner.temp }}/sbom
-          image_refs: ${{ runner.temp }}/apko/images.txt
+          sbom-path: /tmp/sbom
+          image_refs: /tmp/apko/images.txt
 
       - name: Upload SBOMs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sbom-${{ matrix.name }}-${{ matrix.version }}
-          path: ${{ runner.temp }}/sbom/**
+          path: /tmp/sbom/**
           if-no-files-found: warn
           compression-level: 6
           retention-days: 7
@@ -102,3 +103,12 @@ jobs:
         run: |-
           echo "Published digest(s):"
           echo "${{ steps.apko.outputs.digest }}"
+
+      - name: Upload image refs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-refs-${{ matrix.name }}-${{ matrix.version }}
+          path: /tmp/apko/images.txt
+          if-no-files-found: warn
+          retention-days: 7
