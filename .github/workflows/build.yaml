@@ -80,11 +80,15 @@ jobs:
         uses: chainguard-images/actions/apko-publish@main
         with:
           config: ${{ matrix.config }}
-          tag: >
+          # Use >- to CHOMP the trailing newline so the shell line doesn't break
+          tag: >-
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest
-            ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ matrix.version }}
+            ${{ matrix.version != 'latest' && format('ghcr.io/{0}/{1}:{2}', github.repository, matrix.name, matrix.version) || '' }}
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
+          sbom-path: /tmp/sbom
           image_refs: /tmp/apko/images.txt
+          # optional, keeps logs verbose when debugging
+          debug: true
 
       - name: Upload SBOMs
         if: always() && hashFiles('/tmp/sbom/**') != ''
