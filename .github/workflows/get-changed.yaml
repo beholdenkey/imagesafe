@@ -30,7 +30,6 @@ jobs:
         uses: tj-actions/changed-files@v46
         with:
           files: images/**
-          # we want paths to files, not only directory names, so leave dir_names=false
           json: true
           escape_json: false
 
@@ -49,9 +48,7 @@ jobs:
           # If the shared base changed, rebuild all images that have apko.yaml
           if jq -r '.[]' <<< '${{ steps.changed-files.outputs.all_changed_and_modified_files }}' \
               | grep -qx 'images/base/common.yaml'; then
-            mapfile -t all < <(find images -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
-                                | sort -u)
-            # filter only those with apko.yaml
+            mapfile -t all < <(find images -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -u)
             mapfile -t have_apko < <(printf '%s\n' "${all[@]}" | while read -r d; do
               [[ -f "images/$d/apko.yaml" ]] && echo "$d"
             done)
