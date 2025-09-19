@@ -70,7 +70,6 @@ jobs:
           restore-keys: |
             apk-${{ runner.os }}-
 
-      # Use container-visible paths for both SBOMs and image refs
       - name: Make output dirs (SBOM & image refs)
         run: |
           mkdir -p /tmp/sbom

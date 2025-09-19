@@ -56,13 +56,11 @@ jobs:
         run: |-
           set -euo pipefail
 
-          # If nothing changed under images/, output empty and exit
           if [[ "${{ steps.changed-files.outputs.all_changed_and_modified_files_count }}" == "0" ]]; then
             echo "addedOrModifiedImages=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # If the shared base changed, rebuild all images that have apko.yaml
           if jq -r '.[]' <<< '${{ steps.changed-files.outputs.all_changed_and_modified_files }}' \
               | grep -qx 'images/base/common.yaml'; then
             mapfile -t all < <(find images -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -u)
@@ -73,7 +71,6 @@ jobs:
             exit 0
           fi
 
-          # Else: map changed files to images/<name>/..., extract <name>, keep those with apko.yaml
           CHANGED_JSON='${{ steps.changed-files.outputs.all_changed_and_modified_files }}'
           mapfile -t dirs < <(jq -r '.[]' <<< "$CHANGED_JSON" \
               | awk -F/ '/^images\/[^/]+\/./ {print $2}' \
@@ -85,8 +82,7 @@ jobs:
 
           printf "addedOrModifiedImages=%s\n" "$(IFS=, ; echo "${have_apko[*]}")" >> "$GITHUB_OUTPUT"
 
-      # Build a candidate JSON array: [{name, config, version}]
-      - name: Build candidate matrix with version detection
+      - name: Build candidate matrix
         id: candidates
         if: ${{ steps.changed-containers.outputs.addedOrModifiedImages != '' }}
         shell: bash
@@ -97,8 +93,6 @@ jobs:
           build_row() {
             local name="$1"
             local file="images/${name}/apko.yaml"
-
-            # Prefer OCI annotation version
             local ver=""
             ver=$(awk '
               inAnn && $0 ~ /^[^ ]/ { inAnn=0 }
@@ -106,27 +100,59 @@ jobs:
               inAnn && $0 ~ /org\.opencontainers\.image\.version:/ {
                 sub(/.*org\.opencontainers\.image\.version:[[:space:]]*"?/,""); sub(/"$/,""); print; exit
               }' "$file" || true)
-
             if [[ -z "${ver:-}" ]]; then
-              # Fallback: first pinned package like name=1.2.3
               ver=$(grep -E '^[[:space:]]*-[[:space:]]*[a-zA-Z0-9_.+-]+=[0-9][0-9A-Za-z._-]*' "$file" \
                     | head -1 | sed -E 's/.*=([0-9A-Za-z._-]+).*/\1/') || true
             fi
-
             ver=${ver:-latest}
+            jq -n --arg n "$name" --arg v "$ver" \
+              --arg c "images/$name/apko.yaml" \
+              '{name:$n, version:$v, config:$c}'
+          }
 
+          rows=$(for n in "${names[@]}"; do build_row "$n"; done | jq -c -s .)
+          echo "json=$rows" >> "$GITHUB_OUTPUT"
+          echo "count=$(jq -r 'length' <<<"$rows")" >> "$GITHUB_OUTPUT"
+
+      # If NOTHING changed, bootstrap: consider ALL images with apko.yaml
+      - name: Build candidate matrix (all images for bootstrap)
+        id: candidates-all
+        if: ${{ steps.changed-containers.outputs.addedOrModifiedImages == '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t names < <(find images -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -u)
+          # keep only those with apko.yaml
+          mapfile -t names < <(printf '%s\n' "${names[@]}" | while read -r d; do
+            [[ -f "images/$d/apko.yaml" ]] && echo "$d"
+          done)
+
+          build_row() {
+            local name="$1"
+            local file="images/${name}/apko.yaml"
+            local ver=""
+            ver=$(awk '
+              inAnn && $0 ~ /^[^ ]/ { inAnn=0 }
+              /^(annotations:)/ { inAnn=1; next }
+              inAnn && $0 ~ /org\.opencontainers\.image\.version:/ {
+                sub(/.*org\.opencontainers\.image\.version:[[:space:]]*"?/,""); sub(/"$/,""); print; exit
+              }' "$file" || true)
+            if [[ -z "${ver:-}" ]]; then
+              ver=$(grep -E '^[[:space:]]*-[[:space:]]*[a-zA-Z0-9_.+-]+=[0-9][0-9A-Za-z._-]*' "$file" \
+                    | head -1 | sed -E 's/.*=([0-9A-Za-z._-]+).*/\1/') || true
+            fi
+            ver=${ver:-latest}
             jq -n --arg n "$name" --arg v "$ver" \
               --arg c "images/$name/apko.yaml" \
               '{name:$n, version:$v, config:$c}'
           }
 
           if [[ "${#names[@]}" -eq 0 ]]; then
-            echo 'json={"include":[]}' >> "$GITHUB_OUTPUT"
+            echo 'json=[]' >> "$GITHUB_OUTPUT"
             echo 'count=0' >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # -c makes single-line JSON that $GITHUB_OUTPUT accepts
           rows=$(for n in "${names[@]}"; do build_row "$n"; done | jq -c -s .)
           echo "json=$rows" >> "$GITHUB_OUTPUT"
           echo "count=$(jq -r 'length' <<<"$rows")" >> "$GITHUB_OUTPUT"
@@ -134,13 +160,14 @@ jobs:
       # Filter candidates by GHCR tag existence unless force==true
       - name: Filter out images that already exist in GHCR
         id: filter-existing
-        if: ${{ steps.candidates.outputs.count != '0' }}
+        if: ${{ (steps.candidates.outputs.count != '0') || (steps.candidates-all.outputs.count != '0') }}
         uses: actions/github-script@v8
         env:
           FORCE: ${{ inputs.force }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name || github.repository }}
-          CANDIDATES: ${{ steps.candidates.outputs.json }}
+          # Prefer "changed" candidates; fallback to "all" candidates
+          CANDIDATES: ${{ steps.candidates.outputs.json || steps.candidates-all.outputs.json }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           result-encoding: string
@@ -157,17 +184,15 @@ jobs:
               return;
             }
 
-            const keep = [];
-            for (const item of candidates) {
-              const image = `ghcr.io/${repoFull}/${item.name}`;
-              const tag = item.version;
-              // ghcr HEAD /v2/<owner>/<repo>/<image>/manifests/<tag>
+            // Helper: check if tag exists by hitting GHCR registry. We treat 200 as "exists".
+            // 404 => missing; anything else (401/403/5xx) => include to be safe.
+            async function tagMissing(image, tag) {
               const url = `https://${image.replace('ghcr.io/','ghcr.io/v2/')}/manifests/${encodeURIComponent(tag)}`;
-
               const res = await fetch(url, {
                 method: 'HEAD',
                 headers: {
-                  'Authorization': `Bearer ${process.env.GH_TOKEN}`,
+                  // NOTE: GHCR registry expects a bearer token via challenge flow; we don't do that here.
+                  // For private repos this usually yields 401/403, which we interpret as "include to be safe".
                   'Accept': [
                     'application/vnd.oci.image.index.v1+json',
                     'application/vnd.oci.image.manifest.v1+json',
@@ -175,18 +200,26 @@ jobs:
                   ].join(', ')
                 }
               });
+              if (res.status === 200) return false;      // exists
+              if (res.status === 404) return true;       // missing
+              core.warning(`Non-404 status ${res.status} for ${url} — will include to be safe.`);
+              return true;                                // include to be safe
+            }
 
-              if (res.status === 200) {
+            const keep = [];
+            for (const item of candidates) {
+              const image = `ghcr.io/${repoFull}/${item.name}`;
+              const tag = item.version;
+
+              const missing = await tagMissing(image, tag);
+              if (missing) {
+                core.info(`MISSING → ${image}:${tag} (build)`);
+                keep.push(item);
+              } else {
                 core.info(`EXISTS  → ${image}:${tag} (skip)`);
-                continue;
               }
-              if (res.status !== 404) {
-                core.warning(`Status ${res.status} checking ${image}:${tag}; will include to be safe.`);
-              }
-              core.info(`MISSING → ${image}:${tag} (build)`);
-              keep.push(item);
             }
 
             const matrix = { include: keep.map(x => ({ name: x.name, config: x.config, version: x.version })) };
             core.setOutput('matrix', JSON.stringify(matrix));
-            core.setOutput('count', String(matrix.include.length))
+            core.setOutput('count', String(matrix.include.length));
