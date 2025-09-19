@@ -132,7 +132,47 @@ jobs:
           ver=${ver:-latest}
           echo "version=$ver" >> "$GITHUB_OUTPUT"
 
+      - name: Check if target tag exists in GHCR
+        id: check
+        uses: actions/github-script@v8
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}/${{ matrix.name }}
+          TAG: ${{ steps.meta.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # We want a simple "true"/"false" string
+          result-encoding: string
+          script: |
+            const image = process.env.IMAGE; // e.g. ghcr.io/owner/repo/name
+            const tag = process.env.TAG;     // e.g. 1.2.3
+            const url = `https://${image.replace('ghcr.io/','ghcr.io/v2/')}/manifests/${encodeURIComponent(tag)}`;
+
+            const res = await fetch(url, {
+              method: 'HEAD',
+              headers: {
+                'Authorization': `Bearer ${process.env.GH_TOKEN}`,
+                'Accept': [
+                  'application/vnd.oci.image.index.v1+json',
+                  'application/vnd.oci.image.manifest.v1+json',
+                  'application/vnd.docker.distribution.manifest.v2+json'
+                ].join(', ')
+              }
+            });
+
+            if (res.status === 200) {
+              core.info(`Image exists: ${image}:${tag}`);
+              return 'true';
+            }
+            if (res.status === 404) {
+              core.info(`Image missing: ${image}:${tag}`);
+              return 'false';
+            }
+            // Auth or odd status: be permissive and build
+            core.warning(`Status ${res.status} checking ${image}:${tag} — proceeding with build.`);
+            return 'false';
+
       - name: Build ${{ matrix.name }}
+        if: ${{ steps.check.outputs.result != 'true' }}
         id: apko
         uses: chainguard-images/actions/apko-publish@main
         with:
@@ -154,8 +194,13 @@ jobs:
           compression-level: 6
           retention-days: 7
 
-      - name: Output digest
+      - name: Output digest (if built)
+        if: ${{ steps.check.outputs.result != 'true' }}
         shell: bash
-        run: |-
+        run: |
           echo "Published digest(s):"
           echo "${{ steps.apko.outputs.digest }}"
+
+      - name: Skipped (image already exists)
+        if: ${{ steps.check.outputs.result == 'true' }}
+        run: echo "Skipped build for ${{ matrix.name }}:${{ steps.meta.outputs.version }} — tag already exists."
