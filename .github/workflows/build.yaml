@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Build
 
 on:
@@ -15,6 +16,10 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   changed:
     uses: ./.github/workflows/get-changed.yaml
@@ -22,10 +27,14 @@ jobs:
   discover:
     name: Discover images to build
     runs-on: ubuntu-latest
+    needs:
+      - changed
     outputs:
       matrix: ${{ steps.make-matrix.outputs.matrix }}
+      count: ${{ steps.make-matrix.outputs.count }}
     steps:
       - uses: actions/checkout@v4
+
       - id: make-matrix
         shell: bash
         run: |
@@ -35,32 +44,39 @@ jobs:
           event="${{ github.event_name }}"
           csv="${{ needs.changed.outputs.addedOrModifiedImages }}"
 
-          # Decide which set to use
+          declare -a names=()
+
           if [[ "$event" == "schedule" ]]; then
+            # Nightly: build ALL images
             mapfile -t names < <(find images -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -u)
           else
-            if [[ -z "${csv}" ]]; then
-              echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"
-              exit 0
+            # Push / dispatch: build only changed ones (from reusable workflow)
+            if [[ -n "${csv}" ]]; then
+              IFS=, read -r -a names <<< "$csv"
             fi
-            IFS=, read -r -a names <<< "$csv"
           fi
 
-          # Build JSON matrix: [{ "name": "<dir>", "config": "images/<dir>/apko.yaml" }]
+          count="${#names[@]}"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+          if [[ "$count" -eq 0 ]]; then
+            echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Build compact JSON matrix: { "include": [ { "name": "...", "config": "images/.../apko.yaml" }, ... ] }
           json=$(
             printf '%s\n' "${names[@]}" \
               | awk '{printf "{\"name\":\"%s\",\"config\":\"images/%s/apko.yaml\"}\n",$1,$1}' \
-              | jq -s '{include: .}'
+              | jq -c -s '{include: .}'
           )
           echo "matrix=$json" >> "$GITHUB_OUTPUT"
-    needs:
-      - changed
 
   build:
     name: Build images
     needs:
       - discover
-    if: ${{ fromJSON(needs.discover.outputs.matrix).include && fromJSON(needs.discover.outputs.matrix).include != '' }}
+    if: ${{ needs.discover.outputs.count != '0' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -75,22 +91,41 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Optional: cache APK packages between runs (helps when indices don't churn too much)
+      - name: Prepare APK cache
+        run: |
+          sudo mkdir -p /var/cache/apk
+          sudo ln -sf /var/cache/apk /etc/apk/cache || true
+
+      - name: Cache APK packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apk
+          key: apk-${{ runner.os }}-${{ hashFiles(matrix.config) }}
+          restore-keys: |
+            apk-${{ runner.os }}-
+
       - name: Extract version tag from apko.yaml
         id: meta
         shell: bash
         run: |
           set -euo pipefail
           file="${{ matrix.config }}"
+
+          # Prefer OCI annotation
           ver=$(awk '
             inAnn && $0 ~ /^[^ ]/ { inAnn=0 }
             /^(annotations:)/ { inAnn=1; next }
             inAnn && $0 ~ /org\.opencontainers\.image\.version:/ {
               sub(/.*org\.opencontainers\.image\.version:[[:space:]]*"?/,""); sub(/"$/,""); print; exit
             }' "$file" || true)
+
+          # Fallback: first pinned package like name=1.2.3
           if [[ -z "${ver:-}" ]]; then
             ver=$(grep -E '^[[:space:]]*-[[:space:]]*[a-zA-Z0-9_.+-]+=[0-9][0-9A-Za-z._-]*' "$file" \
                   | head -1 | sed -E 's/.*=([0-9A-Za-z._-]+).*/\1/') || true
           fi
+
           ver=${ver:-latest}
           echo "version=$ver" >> "$GITHUB_OUTPUT"
 
@@ -105,6 +140,7 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
 
       - name: Output digest
+        shell: bash
         run: |-
           echo "Published digest(s):"
           echo "${{ steps.apko.outputs.digest }}"
