@@ -77,10 +77,9 @@ jobs:
 
       - name: Build ${{ matrix.name }}
         id: apko
-        uses: chainguard-images/actions/apko-publish@main
+        uses: chainguard-images/actions/apko-publish@v1.0.2
         with:
           config: ${{ matrix.config }}
-          # Use >- to CHOMP the trailing newline so the shell line doesn't break
           tag: >-
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest
             ${{ matrix.version != 'latest' && format('ghcr.io/{0}/{1}:{2}', github.repository, matrix.name, matrix.version) || '' }}
