@@ -60,10 +60,10 @@ jobs:
 
       - name: Build ${{ matrix.name }}
         id: apko
-        uses: chainguard-dev/actions/apko-build@0cda751b114eb55c388e88f7479292668165602a # v1.0.2
+        uses: chainguard-images/actions/apko-publish@main
         with:
           config: ${{ matrix.config }}
-          tag: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ matrix.name }}:latest
+          tag: ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
 
       - name: Output digest
         shell: bash
