@@ -94,7 +94,6 @@ jobs:
       - name: Prepare APK cache
         run: |
           sudo mkdir -p /var/cache/apk
-          sudo ln -sf /var/cache/apk /etc/apk/cache || true
 
       - name: Cache APK packages
         uses: actions/cache@v4
@@ -103,6 +102,11 @@ jobs:
           key: apk-${{ runner.os }}-${{ hashFiles(matrix.config) }}
           restore-keys: |
             apk-${{ runner.os }}-
+
+      - name: Make output dirs (SBOM & image refs)
+        run: |
+          mkdir -p "$RUNNER_TEMP/sbom"
+          mkdir -p "$RUNNER_TEMP/apko"
 
       - name: Extract version tag from apko.yaml
         id: meta
@@ -137,6 +141,18 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ steps.meta.outputs.version }}
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
+          sbom-path: ${{ runner.temp }}/sbom
+          image_refs: ${{ runner.temp }}/apko/images.txt
+
+      - name: Upload SBOMs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.name }}-${{ steps.meta.outputs.version }}
+          path: ${{ runner.temp }}/sbom/**
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 7
 
       - name: Output digest
         shell: bash
