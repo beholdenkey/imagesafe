@@ -4,21 +4,38 @@ name: "Get Changed Images"
 
 on:
   workflow_call:
+    inputs:
+      # When true, we skip the GHCR existence check and return all candidates (useful for nightly force builds)
+      force:
+        type: boolean
+        required: false
+        default: false
     outputs:
       addedOrModified:
         description: "Whether any files were added or modified"
         value: ${{ jobs.get-changed-images.outputs.addedOrModified }}
       addedOrModifiedImages:
-        description: "Comma-separated list of image dirs that need a build"
+        description: "Comma-separated list of image dirs that need a build (pre-filter)"
         value: ${{ jobs.get-changed-images.outputs.addedOrModifiedImages }}
+      imagesToBuildJson:
+        description: "JSON matrix of images that actually need building after GHCR existence check"
+        value: ${{ jobs.get-changed-images.outputs.imagesToBuildJson }}
+      imagesToBuildCount:
+        description: "Count of images to build"
+        value: ${{ jobs.get-changed-images.outputs.imagesToBuildCount }}
 
 jobs:
   get-changed-images:
     name: Get Changed Images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     outputs:
       addedOrModified: "${{ steps.changed-files.outputs.all_changed_and_modified_files_count > 0 }}"
       addedOrModifiedImages: "${{ steps.changed-containers.outputs.addedOrModifiedImages }}"
+      imagesToBuildJson: "${{ steps.filter-existing.outputs.matrix }}"
+      imagesToBuildCount: "${{ steps.filter-existing.outputs.count }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,3 +84,108 @@ jobs:
           done)
 
           printf "addedOrModifiedImages=%s\n" "$(IFS=, ; echo "${have_apko[*]}")" >> "$GITHUB_OUTPUT"
+
+      # Build a candidate JSON array: [{name, config, version}]
+      - name: Build candidate matrix with version detection
+        id: candidates
+        if: ${{ steps.changed-containers.outputs.addedOrModifiedImages != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS=, read -r -a names <<< '${{ steps.changed-containers.outputs.addedOrModifiedImages }}'
+
+          build_row() {
+            local name="$1"
+            local file="images/${name}/apko.yaml"
+
+            # Prefer OCI annotation version
+            local ver=""
+            ver=$(awk '
+              inAnn && $0 ~ /^[^ ]/ { inAnn=0 }
+              /^(annotations:)/ { inAnn=1; next }
+              inAnn && $0 ~ /org\.opencontainers\.image\.version:/ {
+                sub(/.*org\.opencontainers\.image\.version:[[:space:]]*"?/,""); sub(/"$/,""); print; exit
+              }' "$file" || true)
+
+            if [[ -z "${ver:-}" ]]; then
+              # Fallback: first pinned package like name=1.2.3
+              ver=$(grep -E '^[[:space:]]*-[[:space:]]*[a-zA-Z0-9_.+-]+=[0-9][0-9A-Za-z._-]*' "$file" \
+                    | head -1 | sed -E 's/.*=([0-9A-Za-z._-]+).*/\1/') || true
+            fi
+
+            ver=${ver:-latest}
+
+            jq -n --arg n "$name" --arg v "$ver" \
+              --arg c "images/$name/apko.yaml" \
+              '{name:$n, version:$v, config:$c}'
+          }
+
+          if [[ "${#names[@]}" -eq 0 ]]; then
+            echo 'json={"include":[]}' >> "$GITHUB_OUTPUT"
+            echo 'count=0' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          rows=$(for n in "${names[@]}"; do build_row "$n"; done | jq -s .)
+          echo "json=$rows" >> "$GITHUB_OUTPUT"
+          echo "count=$(jq 'length' <<<"$rows")" >> "$GITHUB_OUTPUT"
+
+      # Filter candidates by GHCR tag existence unless force==true
+      - name: Filter out images that already exist in GHCR
+        id: filter-existing
+        if: ${{ steps.candidates.outputs.count != '0' }}
+        uses: actions/github-script@v8
+        env:
+          FORCE: ${{ inputs.force }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name || github.repository }}
+          CANDIDATES: ${{ steps.candidates.outputs.json }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          result-encoding: string
+          script: |-
+            const force = (process.env.FORCE || 'false') === 'true';
+            const repoFull = process.env.REPO?.includes('/') ? process.env.REPO : `${process.env.OWNER}/${process.env.REPO}`;
+            const candidates = JSON.parse(process.env.CANDIDATES || '[]');
+
+            if (force) {
+              core.info('Force mode enabled — skipping GHCR existence check.');
+              const matrix = { include: candidates.map(x => ({ name: x.name, config: x.config, version: x.version })) };
+              core.setOutput('matrix', JSON.stringify(matrix));
+              core.setOutput('count', String(matrix.include.length));
+              return;
+            }
+
+            const keep = [];
+            for (const item of candidates) {
+              const image = `ghcr.io/${repoFull}/${item.name}`;
+              const tag = item.version;
+              // ghcr HEAD /v2/<owner>/<repo>/<image>/manifests/<tag>
+              const url = `https://${image.replace('ghcr.io/','ghcr.io/v2/')}/manifests/${encodeURIComponent(tag)}`;
+
+              const res = await fetch(url, {
+                method: 'HEAD',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GH_TOKEN}`,
+                  'Accept': [
+                    'application/vnd.oci.image.index.v1+json',
+                    'application/vnd.oci.image.manifest.v1+json',
+                    'application/vnd.docker.distribution.manifest.v2+json'
+                  ].join(', ')
+                }
+              });
+
+              if (res.status === 200) {
+                core.info(`EXISTS  → ${image}:${tag} (skip)`);
+                continue;
+              }
+              if (res.status !== 404) {
+                core.warning(`Status ${res.status} checking ${image}:${tag}; will include to be safe.`);
+              }
+              core.info(`MISSING → ${image}:${tag} (build)`);
+              keep.push(item);
+            }
+
+            const matrix = { include: keep.map(x => ({ name: x.name, config: x.config, version: x.version })) };
+            core.setOutput('matrix', JSON.stringify(matrix));
+            core.setOutput('count', String(matrix.include.length))
