@@ -84,11 +84,10 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ matrix.version }}
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
-          sbom-path: /tmp/sbom
           image_refs: /tmp/apko/images.txt
 
       - name: Upload SBOMs
-        if: always()
+        if: always() && hashFiles('/tmp/sbom/**') != ''
         uses: actions/upload-artifact@v4
         with:
           name: sbom-${{ matrix.name }}-${{ matrix.version }}
