@@ -126,9 +126,10 @@ jobs:
             exit 0
           fi
 
-          rows=$(for n in "${names[@]}"; do build_row "$n"; done | jq -s .)
+          # -c makes single-line JSON that $GITHUB_OUTPUT accepts
+          rows=$(for n in "${names[@]}"; do build_row "$n"; done | jq -c -s .)
           echo "json=$rows" >> "$GITHUB_OUTPUT"
-          echo "count=$(jq 'length' <<<"$rows")" >> "$GITHUB_OUTPUT"
+          echo "count=$(jq -r 'length' <<<"$rows")" >> "$GITHUB_OUTPUT"
 
       # Filter candidates by GHCR tag existence unless force==true
       - name: Filter out images that already exist in GHCR
