@@ -86,8 +86,6 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
           sbom-path: /tmp/sbom
           image_refs: /tmp/apko/images.txt
-          # optional, keeps logs verbose when debugging
-          debug: true
 
       - name: Upload SBOMs
         if: always() && hashFiles('/tmp/sbom/**') != ''
