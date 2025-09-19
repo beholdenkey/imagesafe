@@ -1,5 +1,4 @@
 ---
-# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Build
 
 on:
@@ -17,56 +16,95 @@ permissions:
   packages: write
 
 jobs:
+  changed:
+    uses: ./.github/workflows/get-changed.yaml
+
   discover:
-    name: Discover images
+    name: Discover images to build
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.generate.outputs.matrix }}
+      matrix: ${{ steps.make-matrix.outputs.matrix }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-
-      - name: Generate matrix from images/*/apko.yaml
-        id: generate
+      - uses: actions/checkout@v4
+      - id: make-matrix
         shell: bash
         run: |
           set -euo pipefail
           shopt -s nullglob
-          configs=(images/*/apko.yaml)
-          if [ ${#configs[@]} -eq 0 ]; then
-            echo "No apko.yaml files found under images/*" >&2
-            echo 'matrix={"include":[]}' >> $GITHUB_OUTPUT
-            exit 0
+
+          event="${{ github.event_name }}"
+          csv="${{ needs.changed.outputs.addedOrModifiedImages }}"
+
+          # Decide which set to use
+          if [[ "$event" == "schedule" ]]; then
+            mapfile -t names < <(find images -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -u)
+          else
+            if [[ -z "${csv}" ]]; then
+              echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            IFS=, read -r -a names <<< "$csv"
           fi
 
-          # Build JSON array of objects: [{"name":"<folder>", "config":"images/<folder>/apko.yaml"}, ...]
-          json=$(printf '%s\n' "${configs[@]}" \
-            | awk -F'/' '{printf "{\"name\":\"%s\",\"config\":\"%s\"}\n", $2, $0}' \
-            | jq -s '{include: .}')
-
-          echo "Discovered matrix: $json"
+          # Build JSON matrix: [{ "name": "<dir>", "config": "images/<dir>/apko.yaml" }]
+          json=$(
+            printf '%s\n' "${names[@]}" \
+              | awk '{printf "{\"name\":\"%s\",\"config\":\"images/%s/apko.yaml\"}\n",$1,$1}' \
+              | jq -s '{include: .}'
+          )
           echo "matrix=$json" >> "$GITHUB_OUTPUT"
+    needs:
+      - changed
 
   build:
     name: Build images
-    needs: discover
+    needs:
+      - discover
+    if: ${{ fromJSON(needs.discover.outputs.matrix).include && fromJSON(needs.discover.outputs.matrix).include != '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version tag from apko.yaml
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="${{ matrix.config }}"
+          ver=$(awk '
+            inAnn && $0 ~ /^[^ ]/ { inAnn=0 }
+            /^(annotations:)/ { inAnn=1; next }
+            inAnn && $0 ~ /org\.opencontainers\.image\.version:/ {
+              sub(/.*org\.opencontainers\.image\.version:[[:space:]]*"?/,""); sub(/"$/,""); print; exit
+            }' "$file" || true)
+          if [[ -z "${ver:-}" ]]; then
+            ver=$(grep -E '^[[:space:]]*-[[:space:]]*[a-zA-Z0-9_.+-]+=[0-9][0-9A-Za-z._-]*' "$file" \
+                  | head -1 | sed -E 's/.*=([0-9A-Za-z._-]+).*/\1/') || true
+          fi
+          ver=${ver:-latest}
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
 
       - name: Build ${{ matrix.name }}
         id: apko
         uses: chainguard-images/actions/apko-publish@main
         with:
           config: ${{ matrix.config }}
-          tag: ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
+          tag: >
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ steps.meta.outputs.version }}
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
 
       - name: Output digest
-        shell: bash
         run: |-
           echo "Published digest(s):"
           echo "${{ steps.apko.outputs.digest }}"

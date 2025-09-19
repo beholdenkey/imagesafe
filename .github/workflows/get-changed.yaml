@@ -9,7 +9,7 @@ on:
         description: "Whether any files were added or modified"
         value: ${{ jobs.get-changed-images.outputs.addedOrModified }}
       addedOrModifiedImages:
-        description: "The images that were added or modified"
+        description: "Comma-separated list of image dirs that need a build"
         value: ${{ jobs.get-changed-images.outputs.addedOrModifiedImages }}
 
 jobs:
@@ -30,18 +30,43 @@ jobs:
         uses: tj-actions/changed-files@v46
         with:
           files: images/**
-          dir_names: true
-          dir_names_max_depth: 2
+          # we want paths to files, not only directory names, so leave dir_names=false
           json: true
           escape_json: false
 
-      - if: ${{ steps.changed-files.outputs.all_changed_and_modified_files_count > 0 }}
-        name: Determine changed images
+      - name: Determine changed images
         id: changed-containers
         shell: bash
         run: |-
-          IMAGES=$( \
-              echo '${{ steps.changed-files.outputs.all_changed_and_modified_files }}' \
-                  | jq --raw-output 'map(sub("^images/"; "")) | join(",")' \
-          )
-          echo "addedOrModifiedImages=${IMAGES}" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          # If nothing changed under images/, output empty and exit
+          if [[ "${{ steps.changed-files.outputs.all_changed_and_modified_files_count }}" == "0" ]]; then
+            echo "addedOrModifiedImages=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # If the shared base changed, rebuild all images that have apko.yaml
+          if jq -r '.[]' <<< '${{ steps.changed-files.outputs.all_changed_and_modified_files }}' \
+              | grep -qx 'images/base/common.yaml'; then
+            mapfile -t all < <(find images -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+                                | sort -u)
+            # filter only those with apko.yaml
+            mapfile -t have_apko < <(printf '%s\n' "${all[@]}" | while read -r d; do
+              [[ -f "images/$d/apko.yaml" ]] && echo "$d"
+            done)
+            printf "addedOrModifiedImages=%s\n" "$(IFS=, ; echo "${have_apko[*]}")" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Else: map changed files to images/<name>/..., extract <name>, keep those with apko.yaml
+          CHANGED_JSON='${{ steps.changed-files.outputs.all_changed_and_modified_files }}'
+          mapfile -t dirs < <(jq -r '.[]' <<< "$CHANGED_JSON" \
+              | awk -F/ '/^images\/[^/]+\/./ {print $2}' \
+              | sort -u)
+
+          mapfile -t have_apko < <(printf '%s\n' "${dirs[@]}" | while read -r d; do
+            [[ -f "images/$d/apko.yaml" ]] && echo "$d"
+          done)
+
+          printf "addedOrModifiedImages=%s\n" "$(IFS=, ; echo "${have_apko[*]}")" >> "$GITHUB_OUTPUT"
