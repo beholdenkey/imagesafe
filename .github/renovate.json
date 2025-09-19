@@ -14,5 +14,40 @@
   "suppressNotifications": [
     "prEditedNotification",
     "prIgnoreNotification"
+  ],
+  "regexManagers": [
+    {
+      "description": "APKO package pins with preceding renovate comment (respects datasource/depName)",
+      "fileMatch": ["^images/.+/apko\\.yaml$"],
+      "matchStrings": [
+        "(?m)^\\s*#\\s*renovate:\\s*datasource=(?<datasource>[a-z-]+)\\s+depName=(?<depName>[^\\s]+)\\s*$\\n\\s*-\\s*(?<packageName>[A-Za-z0-9._+-]+)=(?<currentValue>[0-9][^\\s#\"]*)"
+      ],
+      "datasourceTemplate": "{{datasource}}",
+      "depNameTemplate": "{{depName}}",
+      "versioningTemplate": "loose",
+      "autoReplaceStringTemplate": "- {{packageName}}={{newValue}}"
+    },
+    {
+      "description": "APKO annotation version with preceding renovate comment (keeps labels in sync)",
+      "fileMatch": ["^images/.+/apko\\.yaml$"],
+      "matchStrings": [
+        "(?m)^\\s*#\\s*renovate:\\s*datasource=(?<datasource>[a-z-]+)\\s+depName=(?<depName>[^\\s]+)\\s*$\\n\\s*org\\.opencontainers\\.image\\.version:\\s*\"?(?<currentValue>[^\"\\n]+)\"?"
+      ],
+      "datasourceTemplate": "{{datasource}}",
+      "depNameTemplate": "{{depName}}",
+      "versioningTemplate": "loose",
+      "autoReplaceStringTemplate": "org.opencontainers.image.version: \"{{newValue}}\""
+    },
+    {
+      "description": "Default APKO package pins via Alpine apk datasource (no comment needed)",
+      "fileMatch": ["^images/hurl/apko\\.yaml$"],
+      "matchStrings": [
+        "(?m)^\\s*-\\s*(?<depName>[A-Za-z0-9._+-]+)=(?<currentValue>[0-9][^\\s#\"]*)\\s*$"
+      ],
+      "datasourceTemplate": "apk",
+      "registryUrlTemplate": "https://dl-cdn.alpinelinux.org/alpine",
+      "versioningTemplate": "apk",
+      "autoReplaceStringTemplate": "- {{depName}}={{newValue}}"
+    }
   ]
 }
