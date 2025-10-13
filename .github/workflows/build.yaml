@@ -77,7 +77,7 @@ jobs:
 
       - name: Build ${{ matrix.name }}
         id: apko
-        uses: chainguard-images/actions/apko-publish@ca94ad0bfa5f31a0e8ba71ff2a7faa1751b9a427 # v1.0.4
+        uses: chainguard-images/actions/apko-publish@699893e193b9705787045aaa1afcba04dd7117ae # v1.0.6
         with:
           config: ${{ matrix.config }}
           tag: >-
