@@ -1,0 +1,14 @@
+---
+schemaVersion: "2.0.0"
+metadataTest:
+  entrypoint:
+    - /usr/bin/tofu
+  cmd:
+    - --help
+commandTests:
+  - name: OpenTofu version
+    command: /usr/bin/tofu
+    args:
+      - version
+    expectedOutput:
+      - "^OpenTofu v[0-9]+"

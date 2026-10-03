@@ -1,0 +1,58 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/chainguard-dev/melange/main/pkg/config/schema.json
+package:
+  name: imagesafe-opentofu
+  version: 1.13.1
+  epoch: 0
+  description: OpenTofu infrastructure as code CLI
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MPL-2.0
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+    packages:
+      - busybox
+      - ca-certificates-bundle
+  environment:
+    CGO_ENABLED: "0"
+    GOTOOLCHAIN: local
+pipeline:
+  - uses: git-checkout
+    with:
+      repository: https://github.com/opentofu/opentofu
+      tag: v${{package.version}}
+      expected-commit: 233700b795b6d2372f1c56ed57a4abaec9d36475
+  - uses: go/build
+    with:
+      go-package: go-1.27
+      packages: ./cmd/tofu
+      output: tofu
+      amd64: v1
+      ldflags: -X github.com/opentofu/opentofu/version.dev=no
+  - uses: strip
+test:
+  environment:
+    contents:
+      keyring:
+        - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      repositories:
+        - https://packages.wolfi.dev/os
+      packages:
+        - busybox
+  pipeline:
+    - runs: |-
+        tofu version | grep -F 'OpenTofu v${{package.version}}'
+        mkdir -p workspace
+        cd workspace
+        printf 'output "message" { value = "imagesafe" }\n' > main.tf
+        tofu init -backend=false -input=false
+        tofu validate

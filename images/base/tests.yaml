@@ -1,0 +1,20 @@
+---
+schemaVersion: "2.0.0"
+metadataTest:
+  user: "65532"
+  workdir: /work
+  envVars:
+    - key: HOME
+      value: /home/nonroot
+    - key: SSL_CERT_FILE
+      value: /etc/ssl/certs/ca-certificates.crt
+fileExistenceTests:
+  - name: TLS certificates
+    path: /etc/ssl/certs/ca-certificates.crt
+    shouldExist: true
+  - name: Nonroot workspace
+    path: /work
+    shouldExist: true
+  - name: Nonroot home
+    path: /home/nonroot
+    shouldExist: true

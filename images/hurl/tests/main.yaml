@@ -1,0 +1,14 @@
+---
+schemaVersion: "2.0.0"
+metadataTest:
+  entrypoint:
+    - /usr/bin/hurl
+  cmd:
+    - --help
+commandTests:
+  - name: Hurl version
+    command: /usr/bin/hurl
+    args:
+      - --version
+    expectedOutput:
+      - "^hurl [0-9]+"

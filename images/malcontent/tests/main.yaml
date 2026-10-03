@@ -1,0 +1,14 @@
+---
+schemaVersion: "2.0.0"
+metadataTest:
+  entrypoint:
+    - /usr/bin/mal
+  cmd:
+    - --help
+commandTests:
+  - name: malcontent version
+    command: /usr/bin/mal
+    args:
+      - --version
+    expectedOutput:
+      - "[0-9]+[.][0-9]+"

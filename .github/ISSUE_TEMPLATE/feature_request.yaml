@@ -14,7 +14,7 @@ body:
         Please follow these guidelines to help us evaluate and implement your request effectively:
 
         - **Check** if a similar feature request already exists.
-        - **Describe** what the feature will bring to the project or community.
+        - **Describe** what the feature will bring to the project.
         - **Define** clear acceptance criteria.
         - **Consider** potential security, compliance, and scalability impacts.
         - **Participate** in discussions for clarifications and follow-up.
@@ -23,7 +23,7 @@ body:
     id: description
     attributes:
       label: "Description"
-      description: Describe the current state or problem this feature aims to solve."
+      description: "Describe the current state or problem this feature aims to solve."
       placeholder: "What is the current problem or limitation?"
     validations:
       required: true
@@ -32,7 +32,7 @@ body:
     id: proposed_solution
     attributes:
       label: "Proposed Solution"
-      description: Describe the solution or feature you'd like to see."
+      description: "Describe the solution or feature you'd like to see."
       placeholder: "A clear and concise description of the proposed solution."
     validations:
       required: true
@@ -41,7 +41,7 @@ body:
     id: priority
     attributes:
       label: "Priority"
-      description: Indicate the priority level of this feature request."
+      description: "Indicate the priority level of this feature request."
       options:
         - Low
         - Medium
@@ -53,7 +53,7 @@ body:
     id: estimated_effort
     attributes:
       label: "Estimated Effort"
-      description: Provide an estimated effort for implementing this feature."
+      description: "Provide an estimated effort for implementing this feature."
       placeholder: "e.g., 5 hours, 3 days, 2 weeks"
     validations:
       required: false
@@ -62,7 +62,7 @@ body:
     id: dependencies
     attributes:
       label: "Dependencies"
-      description: List any dependencies or related features that might impact this request."
+      description: "List any dependencies or related features that might impact this request."
       placeholder: "Mention any dependencies on other features, teams, or systems."
     validations:
       required: false
@@ -71,7 +71,7 @@ body:
     id: acceptance_criteria
     attributes:
       label: "Acceptance Criteria"
-      description: Define the criteria to consider the feature complete."
+      description: "Define the criteria to consider the feature complete."
       placeholder: "A list of specific requirements for the feature (e.g., must do A, B, and C)."
     validations:
       required: true
@@ -80,7 +80,7 @@ body:
     id: additional_info
     attributes:
       label: "Additional Information"
-      description: Provide any additional context, screenshots, or supporting information."
+      description: "Provide any additional context, screenshots, or supporting information."
       placeholder: "Add any extra details or attachments."
     validations:
       required: false

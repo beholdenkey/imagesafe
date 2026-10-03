@@ -1,0 +1,12 @@
+{
+  "name": "mise-npm-install",
+  "private": true,
+  "dependencies": {
+    "renovate": "44.126.0"
+  },
+  "aube": {
+    "allowBuilds": {
+      "re2": true
+    }
+  }
+}

@@ -1,0 +1,29 @@
+---
+hurl:
+  - ".github/workflows/build.yaml"
+  - ".github/image-filters.yaml"
+  - ".mise/**"
+  - "images/base/**"
+  - "images/hurl/**"
+  - "!**/*.md"
+malcontent:
+  - ".github/workflows/build.yaml"
+  - ".github/image-filters.yaml"
+  - ".mise/**"
+  - "images/base/**"
+  - "images/malcontent/**"
+  - "!**/*.md"
+opentofu:
+  - ".github/workflows/build.yaml"
+  - ".github/image-filters.yaml"
+  - ".mise/**"
+  - "images/base/**"
+  - "images/opentofu/**"
+  - "!**/*.md"
+wolfi-base:
+  - ".github/workflows/build.yaml"
+  - ".github/image-filters.yaml"
+  - ".mise/**"
+  - "images/base/**"
+  - "images/wolfi-base/**"
+  - "!**/*.md"
