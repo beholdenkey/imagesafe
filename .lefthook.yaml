@@ -1,48 +1,24 @@
 ---
-assert_lefthook_installed: true
-skip_lfs: true
+remotes:
+  - git_url: https://github.com/apeiros-innovations/common.git
+    # renovate: datasource=git-refs depName=https://github.com/apeiros-innovations/common.git
+    ref: 909c0d34e9a626138a1e1951c763b261ab942754
+    configs:
+      - lefthook.common.yaml
+      - lefthook.github.yaml
+      - lefthook.container.yaml
+      - lefthook.renovate.yaml
 
-prepare-commit-msg:
-  commands:
-    commitzen:
-      interactive: true
-      run: bash -lc 'cz check --message "$(cat {1})"'
-      env:
-        LEFTHOOK: "0"
-
-commit-msg:
-  commands:
-    "lint commit message":
-      run: commitlint --edit {1}
-
+# Common currently matches .config/mise; this project uses the .mise layout.
 pre-commit:
-  parallel: true
   jobs:
-    - name: format yaml
-      glob: "*.yaml"
-      run: yamlfmt {staged_files}
-      tags:
-        - format
+    - name: imagesafe mise
+      glob:
+        - ".mise/config.toml"
+        - ".mise/conf.d/*.toml"
+        - ".mise/mise.lock"
+      run: mise fmt && mise lock
       stage_fixed: true
-
-    - name: check links
       tags:
-        - docs
-      run: lychee --max-concurrency 3 {staged_files}
-      glob: '*.md'
-      exclude:
-        - CHANGELOG.md
-
-    - name: format markdown
-      glob: "*.md"
-      run: prettier --write {staged_files}
-      tags:
-        - docs
-      stage_fixed: true
-
-    - name: fix typos
-      tags:
-        - lint
-      run: typos --write-changes {staged_files}
-      stage_fixed: true
-
+        - mise
+        - generation

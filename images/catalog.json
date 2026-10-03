@@ -1,0 +1,19 @@
+{
+  "hurl": {
+    "package": "hurl",
+    "smoke": ["--version"]
+  },
+  "malcontent": {
+    "package": "malcontent",
+    "smoke": ["--version"]
+  },
+  "opentofu": {
+    "package": "imagesafe-opentofu",
+    "smoke": ["version"],
+    "recipe": "packages/opentofu.yaml"
+  },
+  "wolfi-base": {
+    "package": "wolfi-base",
+    "smoke": ["-c", "test \"$(id -u)\" = 65532 && test -s /etc/ssl/certs/ca-certificates.crt"]
+  }
+}

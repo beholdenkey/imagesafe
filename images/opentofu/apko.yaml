@@ -4,19 +4,18 @@ include: images/base/common.yaml
 contents:
   keyring:
     - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    - build/packages/x86_64/melange-x86_64.rsa.pub
+    - build/packages/aarch64/melange-aarch64.rsa.pub
   repositories:
     - https://packages.wolfi.dev/os
+    - "@local build/packages"
   packages:
     - ca-certificates-bundle
-    - wolfi-base
-    # renovate: datasource=github-releases depName=opentofu/opentofu
-    - opentofu=1.9.1
+    - imagesafe-opentofu@local
 
 annotations:
   org.opencontainers.image.title: "OpenTofu"
   org.opencontainers.image.description: "The open source infrastructure as code tool."
-  # renovate: datasource=github-releases depName=opentofu/opentofu
-  org.opencontainers.image.version: "1.9.1"
   org.opencontainers.image.documentation: "https://github.com/opentofu/opentofu"
 
 entrypoint:

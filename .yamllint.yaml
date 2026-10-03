@@ -1,0 +1,74 @@
+---
+yaml-files:
+  - "*.yaml"
+  - "*.yml"
+ignore:
+  - ".mise/locks/**"
+  - "**/charts/**/templates/**"
+  - "**/*.sops.yaml"
+  - "schemas/**"
+rules:
+  anchors:
+    forbid-undeclared-aliases: true
+    forbid-duplicated-anchors: true
+  braces:
+    forbid: false
+    min-spaces-inside: 0
+    max-spaces-inside: 0
+  brackets:
+    forbid: false
+    min-spaces-inside: 0
+    max-spaces-inside: 0
+  colons:
+    max-spaces-before: 0
+    max-spaces-after: 1
+  commas:
+    max-spaces-before: 0
+    max-spaces-after: 1
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 2
+    level: warning
+  comments-indentation:
+    level: warning
+  document-end: disable
+  document-start:
+    present: true
+  empty-lines:
+    max: 1
+    max-start: 0
+    max-end: 0
+  empty-values:
+    forbid-in-block-mappings: true
+    forbid-in-flow-mappings: true
+  float-values:
+    forbid-inf: true
+    forbid-nan: true
+    forbid-scientific-notation: false
+    require-numeral-before-decimal: true
+  hyphens:
+    max-spaces-after: 1
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+  key-duplicates:
+    forbid-duplicated-merge-keys: true
+  key-ordering: disable
+  line-length: disable
+  new-line-at-end-of-file: enable
+  new-lines:
+    type: unix
+  octal-values:
+    forbid-implicit-octal: true
+    # apko uses explicit octal values for filesystem permissions.
+    forbid-explicit-octal: false
+  quoted-strings:
+    required: false
+    quote-type: double
+  trailing-spaces: enable
+  truthy:
+    allowed-values:
+      - "true"
+      - "false"
+    check-keys: false

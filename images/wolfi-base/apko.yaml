@@ -1,5 +1,6 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/chainguard-dev/apko/main/pkg/build/types/schema.json
+include: images/base/common.yaml
 contents:
   keyring:
     - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
@@ -9,18 +10,11 @@ contents:
     - ca-certificates-bundle
     - wolfi-base
 
+annotations:
+  org.opencontainers.image.title: "Wolfi base"
+  org.opencontainers.image.description: "A nonroot Wolfi base image for interactive tools."
+  org.opencontainers.image.documentation: "https://github.com/wolfi-dev/os"
+
 entrypoint:
-  command: /bin/sh -l
-
-archs:
-  - x86_64
-  - aarch64
-
-accounts:
-  groups:
-    - groupname: nonroot
-      gid: 65532
-  users:
-    - username: nonroot
-      uid: 65532
-      gid: 65532
+  command: /bin/sh
+cmd: -l

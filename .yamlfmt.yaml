@@ -1,5 +1,7 @@
 ---
 doublestar: true
+exclude:
+  - ".mise/locks/**"
 formatter:
   type: basic
   disable_alias_key_correction: true

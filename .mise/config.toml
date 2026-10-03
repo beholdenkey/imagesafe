@@ -1,0 +1,59 @@
+min_version = { hard = "2026.10.0" }
+
+[settings]
+lockfile = true
+lockfile_platforms = ["linux-x64", "linux-arm64", "macos-arm64"]
+
+[tools]
+# Renovate supports Node 24 LTS; Common currently selects Node 26.
+node = "24.21.0"
+"aqua:chainguard-dev/apko" = "1.4.6"
+"aqua:chainguard-dev/melange" = "0.61.2"
+"aqua:sigstore/cosign" = "3.1.3"
+
+[tasks.setup]
+description = "Install the shared Git hooks"
+run = "python scripts/hooks.py setup"
+
+[tasks.check]
+description = "Validate recipes, tooling, workflows, and build selection"
+run = [
+  "python -m unittest discover -s tests -v",
+  "python scripts/images.py validate",
+  "actionlint",
+  "zizmor .github/workflows",
+  "renovate-config-validator --strict",
+  "python scripts/hooks.py check",
+]
+
+[tasks."images:list"]
+description = "List supported images"
+run = "python scripts/images.py list"
+
+[tasks."images:lock"]
+description = "Refresh APK locks for an image or all images"
+run = "python scripts/images.py lock"
+
+[tasks."images:build"]
+description = "Build an image from its APK lock (requires an image name)"
+run = "python scripts/images.py build"
+
+[tasks."images:test"]
+description = "Smoke-test a built image with Docker"
+run = "python scripts/images.py test"
+
+[tasks."images:scan"]
+description = "Scan a built image; fail on HIGH or CRITICAL vulnerabilities"
+run = "python scripts/images.py scan"
+
+[tasks."images:publish"]
+description = "Publish an image from its APK lock (requires registry login)"
+run = "python scripts/images.py publish"
+
+[tasks."packages:build"]
+description = "Build a melange recipe with a local signing key"
+run = "bash scripts/package.sh build"
+
+[tasks."packages:test"]
+description = "Test the resulting melange package"
+run = "bash scripts/package.sh test"

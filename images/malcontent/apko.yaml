@@ -8,21 +8,13 @@ contents:
     - https://packages.wolfi.dev/os
   packages:
     - ca-certificates-bundle
-    - wolfi-base
-    # renovate: datasource=github-releases depName=chainguard-dev/malcontent
-    - malcontent=1.16.0
+    - malcontent
 
 annotations:
   org.opencontainers.image.title: "malcontent"
-  org.opencontainers.image.description: "Malware Discovery Tool"
-  # renovate: datasource=github-releases depName=chainguard-dev/malcontent
-  org.opencontainers.image.version: "1.16.0"
+  org.opencontainers.image.description: "Discover malware in files and container images."
   org.opencontainers.image.documentation: "https://github.com/chainguard-dev/malcontent"
 
 entrypoint:
   command: /usr/bin/mal
 cmd: --help
-
-environment:
-  PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-  SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
