@@ -1,0 +1,14 @@
+---
+schemaVersion: "2.0.0"
+metadataTest:
+  entrypoint:
+    - /bin/sh
+  cmd:
+    - -l
+commandTests:
+  - name: Runtime UID
+    command: id
+    args:
+      - -u
+    expectedOutput:
+      - "^65532"

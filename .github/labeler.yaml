@@ -17,5 +17,6 @@ area/container:
 area/ci:
   - changed-files:
       - any-glob-to-any-file:
-          - "scripts/**"
-          - "tests/**"
+          - ".github/image-filters.yaml"
+          - "images/*/tests/**"
+          - "images/base/tests.yaml"

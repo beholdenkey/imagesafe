@@ -33,31 +33,41 @@ jobs:
     name: Select changed images
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
-      images: ${{ steps.matrix.outputs.images }}
-      builds: ${{ steps.matrix.outputs.builds }}
-      packages: ${{ steps.matrix.outputs.packages }}
-      package_count: ${{ steps.matrix.outputs.package_count }}
-      count: ${{ steps.matrix.outputs.count }}
+      images: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["hurl","malcontent","opentofu","wolfi-base"]' || steps.filter.outputs.changes }}
+      source_date_epoch: ${{ steps.source-date.outputs.epoch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
-      - id: matrix
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-          FORCE_ALL: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        run: python3 scripts/images.py matrix
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: .github/image-filters.yaml
+          predicate-quantifier: some-with-excludes
+      - id: source-date
+        run: echo "epoch=$(git log -1 --format=%ct)" >> "$GITHUB_OUTPUT"
   packages:
-    name: Package and test (${{ matrix.name }}, ${{ matrix.arch }})
+    name: Package and test OpenTofu (${{ matrix.platform.arch }})
     needs: select
-    if: needs.select.outputs.package_count != '0'
-    runs-on: ${{ matrix.runner }}
+    if: contains(fromJSON(needs.select.outputs.images), 'opentofu')
+    runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 45
+    env:
+      ARCH: ${{ matrix.platform.arch }}
+      SOURCE_DATE_EPOCH: ${{ needs.select.outputs.source_date_epoch }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.select.outputs.packages) }}
+      matrix:
+        platform:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -66,74 +76,89 @@ jobs:
         with:
           version: "2026.10.0"
           install_args: --locked aqua:chainguard-dev/melange
-      - name: Build a signed source package
-        env:
-          RECIPE: ${{ matrix.recipe }}
-          ARCH: ${{ matrix.arch }}
-        run: bash scripts/package.sh build "$RECIPE" "$ARCH"
+      - name: Generate an ephemeral signing key
+        run: |
+          mkdir -p build/keys build/packages
+          melange keygen "build/keys/melange-$ARCH.rsa"
+      - name: Build the signed source package
+        run: |
+          melange build images/opentofu/melange.yaml --arch "$ARCH" --runner docker \
+            --signing-key "build/keys/melange-$ARCH.rsa" --out-dir "$PWD/build/packages" \
+            --source-dir images/opentofu --generate-provenance
+          cp "build/keys/melange-$ARCH.rsa.pub" "build/packages/$ARCH/"
       - name: Test the packaged application
-        env:
-          RECIPE: ${{ matrix.recipe }}
-          ARCH: ${{ matrix.arch }}
-        run: bash scripts/package.sh test "$RECIPE" "$ARCH"
+        run: |
+          melange test images/opentofu/melange.yaml --arch "$ARCH" --runner docker \
+            --repository-append "$PWD/build/packages" \
+            --keyring-append "build/keys/melange-$ARCH.rsa.pub" --source-dir images/opentofu
       - name: Preserve packages, provenance, and public keys
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: apk-${{ matrix.name }}-${{ matrix.arch }}
+          name: apk-opentofu-${{ matrix.platform.arch }}
           path: build/packages/
           if-no-files-found: error
           retention-days: 30
   resolve:
-    name: Resolve exact image package inputs
+    name: Resolve package inputs (${{ matrix.image }})
     needs:
       - select
       - packages
-    if: always() && needs.select.result == 'success' && (needs.packages.result == 'success' || needs.packages.result == 'skipped')
+    if: always() && needs.select.result == 'success' && needs.select.outputs.images != '[]' && (needs.packages.result == 'success' || needs.packages.result == 'skipped')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    outputs:
-      images: ${{ needs.select.outputs.images }}
-      builds: ${{ needs.select.outputs.builds }}
-      package_count: ${{ needs.select.outputs.package_count }}
-      count: ${{ needs.select.outputs.count }}
+    env:
+      IMAGE: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.select.outputs.images) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       - uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492 # v5.0.1
-        if: needs.select.outputs.count != '0'
         with:
           version: "2026.10.0"
           install_args: --locked aqua:chainguard-dev/apko
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        if: needs.select.outputs.package_count != '0'
+        if: matrix.image == 'opentofu'
         with:
-          pattern: apk-*
+          pattern: apk-opentofu-*
           merge-multiple: true
           path: build/packages
-      - name: Refresh packages for nightly and manual rebuilds
-        if: needs.select.outputs.count != '0' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        run: python3 scripts/images.py lock
-      - name: Lock the freshly built OpenTofu package
-        if: needs.select.outputs.package_count != '0' && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
-        run: python3 scripts/images.py lock opentofu
-      - name: Preserve the exact package inputs
-        if: needs.select.outputs.count != '0'
+      - name: Resolve fresh packages for source, nightly, and manual builds
+        if: matrix.image == 'opentofu' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          apko lock "images/$IMAGE/apko.yaml" --output "images/$IMAGE/apko.lock.json"
+          chmod 644 "images/$IMAGE/apko.lock.json"
+      - name: Preserve exact package inputs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: apk-locks
-          path: images/*/apko.lock.json
+          name: lock-${{ matrix.image }}
+          path: images/${{ matrix.image }}/apko.lock.json
           if-no-files-found: error
           retention-days: 30
   build:
-    name: Build and test (${{ matrix.name }}, ${{ matrix.arch }})
-    needs: resolve
-    if: needs.resolve.outputs.count != '0'
-    runs-on: ${{ matrix.runner }}
+    name: Build and test (${{ matrix.image }}, ${{ matrix.platform.arch }})
+    needs:
+      - select
+      - resolve
+    if: always() && needs.select.result == 'success' && needs.resolve.result == 'success' && needs.select.outputs.images != '[]'
+    runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 25
+    env:
+      IMAGE: ${{ matrix.image }}
+      ARCH: ${{ matrix.platform.arch }}
+      SOURCE_DATE_EPOCH: ${{ needs.select.outputs.source_date_epoch }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.resolve.outputs.builds) }}
+      matrix:
+        image: ${{ fromJSON(needs.select.outputs.images) }}
+        platform:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -141,45 +166,66 @@ jobs:
       - uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492 # v5.0.1
         with:
           version: "2026.10.0"
-          install_args: --locked aqua:chainguard-dev/apko aqua:aquasecurity/trivy
+          install_args: --locked aqua:chainguard-dev/apko aqua:aquasecurity/trivy aqua:jqlang/jq aqua:mikefarah/yq aqua:GoogleContainerTools/container-structure-test
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: apk-locks
-          path: images
+          name: lock-${{ matrix.image }}
+          path: images/${{ matrix.image }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        if: matrix.name == 'opentofu'
+        if: matrix.image == 'opentofu'
         with:
           pattern: apk-opentofu-*
           merge-multiple: true
           path: build/packages
-      - name: Build from the resolved package lock
-        env:
-          IMAGE: ${{ matrix.name }}
-          ARCH: ${{ matrix.arch }}
-        run: python3 scripts/images.py build "$IMAGE" --arch "$ARCH"
-      - name: Test the native image as nonroot
-        env:
-          IMAGE: ${{ matrix.name }}
-          ARCH: ${{ matrix.arch }}
-        run: python3 scripts/images.py test "$IMAGE" --arch "$ARCH"
-      - name: Scan for vulnerabilities
-        env:
-          IMAGE: ${{ matrix.name }}
-          ARCH: ${{ matrix.arch }}
-        run: python3 scripts/images.py scan "$IMAGE" --arch "$ARCH"
-      - name: Preserve SBOM and scan evidence
+      - name: Build the locked image and SBOM
+        run: |
+          mkdir -p "build/$IMAGE/$ARCH"
+          package=$(yq -r '.package' "images/$IMAGE/metadata.yaml")
+          version=$(jq -r --arg name "$package" \
+            '[.contents.packages[] | select(.name == $name) | .version | sub("-r[0-9]+$"; "")] | unique | if length == 1 then .[0] else error("application versions differ between architectures") end' \
+            "images/$IMAGE/apko.lock.json")
+          apko build "images/$IMAGE/apko.yaml" "imagesafe/$IMAGE:test" \
+            "build/$IMAGE/$ARCH/image.tar" --arch "$ARCH" \
+            --lockfile "images/$IMAGE/apko.lock.json" --sbom-path "build/$IMAGE/$ARCH" \
+            --cache-dir .cache/apko \
+            --annotations "org.opencontainers.image.version:$version,org.opencontainers.image.revision:$GITHUB_SHA"
+      - name: Run declarative image tests
+        run: |
+          docker load --input "build/$IMAGE/$ARCH/image.tar"
+          container-structure-test test --image "imagesafe/$IMAGE:test-$ARCH" \
+            --platform "linux/$ARCH" \
+            --config images/base/tests.yaml --config "images/$IMAGE/tests/main.yaml" \
+            --test-report "build/$IMAGE/$ARCH/structure-tests.json"
+      - name: Initialize and validate OpenTofu as nonroot
+        if: matrix.image == 'opentofu'
+        run: |
+          chmod 777 images/opentofu/tests/workspace
+          docker run --rm --read-only --network=none --cap-drop=ALL \
+            --security-opt=no-new-privileges --tmpfs /tmp \
+            --mount "type=bind,src=$PWD/images/opentofu/tests/workspace,dst=/work" \
+            "imagesafe/opentofu:test-$ARCH" init -backend=false -input=false
+          docker run --rm --read-only --network=none --cap-drop=ALL \
+            --security-opt=no-new-privileges --tmpfs /tmp \
+            --mount "type=bind,src=$PWD/images/opentofu/tests/workspace,dst=/work" \
+            "imagesafe/opentofu:test-$ARCH" validate
+      - name: Scan for HIGH and CRITICAL vulnerabilities
+        run: |
+          trivy image --input "build/$IMAGE/$ARCH/image.tar" --scanners vuln \
+            --severity HIGH,CRITICAL --exit-code 1 --format json \
+            --output "build/$IMAGE/$ARCH/trivy.json"
+      - name: Preserve SBOM, test, and scan evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: evidence-${{ matrix.name }}-${{ matrix.arch }}
-          path: |
-            build/${{ matrix.name }}/${{ matrix.arch }}/*.json
+          name: evidence-${{ matrix.image }}-${{ matrix.platform.arch }}
+          path: build/${{ matrix.image }}/${{ matrix.platform.arch }}/*.json
           if-no-files-found: warn
           retention-days: 30
   checks:
     name: Image checks
     needs:
       - validate
+      - select
       - resolve
       - build
     if: always()
@@ -189,30 +235,38 @@ jobs:
       - name: Require successful validation and selected builds
         env:
           VALIDATE: ${{ needs.validate.result }}
+          SELECT: ${{ needs.select.result }}
           RESOLVE: ${{ needs.resolve.result }}
           BUILD: ${{ needs.build.result }}
-          COUNT: ${{ needs.resolve.outputs.count }}
+          IMAGES: ${{ needs.select.outputs.images }}
         run: |
           test "$VALIDATE" = success
-          test "$RESOLVE" = success
-          if [ "$COUNT" != 0 ]; then
+          test "$SELECT" = success
+          if [ "$IMAGES" != '[]' ]; then
+            test "$RESOLVE" = success
             test "$BUILD" = success
           fi
   publish:
-    name: Publish (${{ matrix.name }})
+    name: Publish (${{ matrix.image }})
     needs:
+      - select
       - resolve
       - checks
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.resolve.outputs.count != '0'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.select.outputs.images != '[]'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
       packages: write
       id-token: write
+    env:
+      IMAGE: ${{ matrix.image }}
+      IMAGE_REPOSITORY: ghcr.io/${{ github.repository }}/${{ matrix.image }}
+      SOURCE_DATE_EPOCH: ${{ needs.select.outputs.source_date_epoch }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.resolve.outputs.images) }}
+      matrix:
+        image: ${{ fromJSON(needs.select.outputs.images) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -220,18 +274,35 @@ jobs:
       - uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492 # v5.0.1
         with:
           version: "2026.10.0"
-          install_args: --locked aqua:chainguard-dev/apko aqua:sigstore/cosign
+          install_args: --locked aqua:chainguard-dev/apko aqua:sigstore/cosign aqua:jqlang/jq aqua:mikefarah/yq
           cache_save: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: apk-locks
-          path: images
+          name: lock-${{ matrix.image }}
+          path: images/${{ matrix.image }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        if: matrix.name == 'opentofu'
+        if: matrix.image == 'opentofu'
         with:
           pattern: apk-opentofu-*
           merge-multiple: true
           path: build/packages
+      - name: Read the application version from the package lock
+        id: version
+        run: |
+          package=$(yq -r '.package' "images/$IMAGE/metadata.yaml")
+          version=$(jq -r --arg name "$package" \
+            '[.contents.packages[] | select(.name == $name) | .version | sub("-r[0-9]+$"; "")] | unique | if length == 1 then .[0] else error("application versions differ between architectures") end' \
+            "images/$IMAGE/apko.lock.json")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        id: metadata
+        with:
+          images: ${{ env.IMAGE_REPOSITORY }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=sha,format=long,prefix=
+            type=raw,value=build-${{ github.run_id }}
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ghcr.io
@@ -239,16 +310,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish the tested package set
         env:
-          IMAGE: ${{ matrix.name }}
-          IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
-        run: python3 scripts/images.py publish "$IMAGE"
-      - name: Sign images and attest the index SBOM
-        env:
-          IMAGE: ${{ matrix.name }}
+          TAGS: ${{ steps.metadata.outputs.tags }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          while IFS= read -r ref; do
-            cosign sign --yes "$ref"
-          done < "build/$IMAGE/publish/image-refs.txt"
+          mkdir -p "build/$IMAGE/publish"
+          mapfile -t tags <<< "$TAGS"
+          apko publish "images/$IMAGE/apko.yaml" "${tags[@]}" \
+            --lockfile "images/$IMAGE/apko.lock.json" --sbom-path "build/$IMAGE/publish" \
+            --image-refs "build/$IMAGE/publish/image-refs.txt" --cache-dir .cache/apko \
+            --annotations "org.opencontainers.image.version:$VERSION,org.opencontainers.image.revision:$GITHUB_SHA"
+      - name: Sign images and attest the index SBOM
+        run: |
+          mapfile -t refs < "build/$IMAGE/publish/image-refs.txt"
+          cosign sign --yes "${refs[@]}"
           index=$(tail -n 1 "build/$IMAGE/publish/image-refs.txt")
           cosign attest --yes --type spdxjson \
             --predicate "build/$IMAGE/publish/sbom-index.spdx.json" "$index"
@@ -257,7 +331,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: published-${{ matrix.name }}
-          path: build/${{ matrix.name }}/publish/
+          name: published-${{ matrix.image }}
+          path: build/${{ matrix.image }}/publish/
           if-no-files-found: warn
           retention-days: 30

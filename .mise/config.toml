@@ -10,50 +10,119 @@ node = "24.21.0"
 "aqua:chainguard-dev/apko" = "1.4.6"
 "aqua:chainguard-dev/melange" = "0.61.2"
 "aqua:sigstore/cosign" = "3.1.3"
+"aqua:jqlang/jq" = "1.8.2"
+"aqua:mikefarah/yq" = "4.54.1"
+"aqua:GoogleContainerTools/container-structure-test" = "1.22.1"
 
 [tasks.setup]
 description = "Install the shared Git hooks"
-run = "python scripts/hooks.py setup"
+run = ["lefthook install", "lefthook validate"]
 
 [tasks.check]
-description = "Validate recipes, tooling, workflows, and build selection"
+description = "Validate image recipes, tooling, and workflows"
 run = [
-  "python -m unittest discover -s tests -v",
-  "python scripts/images.py validate",
+  "apko show-config images/hurl/apko.yaml > /dev/null",
+  "apko show-config images/malcontent/apko.yaml > /dev/null",
+  "apko show-config images/wolfi-base/apko.yaml > /dev/null",
+  "melange compile images/opentofu/melange.yaml --arch x86_64 > /dev/null",
+  "melange compile images/opentofu/melange.yaml --arch aarch64 > /dev/null",
   "actionlint",
   "zizmor .github/workflows",
   "renovate-config-validator --strict",
-  "python scripts/hooks.py check",
+  "lefthook validate",
 ]
 
-[tasks."images:list"]
-description = "List supported images"
-run = "python scripts/images.py list"
-
 [tasks."images:lock"]
-description = "Refresh APK locks for an image or all images"
-run = "python scripts/images.py lock"
+description = "Resolve exact APK inputs for an image"
+usage = '''
+arg "<image>" {
+  choices "hurl" "malcontent" "opentofu" "wolfi-base"
+}
+'''
+run = [
+  'apko lock "images/$usage_image/apko.yaml" --output "images/$usage_image/apko.lock.json"',
+  'chmod 644 "images/$usage_image/apko.lock.json"',
+]
 
 [tasks."images:build"]
-description = "Build an image from its APK lock (requires an image name)"
-run = "python scripts/images.py build"
+description = "Build an image from its APK lock"
+usage = '''
+arg "<image>" {
+  choices "hurl" "malcontent" "opentofu" "wolfi-base"
+}
+flag "--arch <arch>" default="amd64" {
+  choices "amd64" "arm64"
+}
+'''
+run = '''
+mkdir -p "build/$usage_image/$usage_arch"
+SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) apko build \
+  "images/$usage_image/apko.yaml" "imagesafe/$usage_image:test" \
+  "build/$usage_image/$usage_arch/image.tar" --arch "$usage_arch" \
+  --lockfile "images/$usage_image/apko.lock.json" \
+  --sbom-path "build/$usage_image/$usage_arch" --cache-dir .cache/apko
+'''
 
 [tasks."images:test"]
-description = "Smoke-test a built image with Docker"
-run = "python scripts/images.py test"
+description = "Run declarative Container Structure Tests with Docker"
+usage = '''
+arg "<image>" {
+  choices "hurl" "malcontent" "opentofu" "wolfi-base"
+}
+flag "--arch <arch>" default="amd64" {
+  choices "amd64" "arm64"
+}
+'''
+run = [
+  'docker load --input "build/$usage_image/$usage_arch/image.tar"',
+  'container-structure-test test --image "imagesafe/$usage_image:test-$usage_arch" --platform "linux/$usage_arch" --config images/base/tests.yaml --config "images/$usage_image/tests/main.yaml" --test-report "build/$usage_image/$usage_arch/structure-tests.json"',
+]
 
 [tasks."images:scan"]
-description = "Scan a built image; fail on HIGH or CRITICAL vulnerabilities"
-run = "python scripts/images.py scan"
-
-[tasks."images:publish"]
-description = "Publish an image from its APK lock (requires registry login)"
-run = "python scripts/images.py publish"
+description = "Fail on HIGH or CRITICAL image vulnerabilities"
+usage = '''
+arg "<image>" {
+  choices "hurl" "malcontent" "opentofu" "wolfi-base"
+}
+flag "--arch <arch>" default="amd64" {
+  choices "amd64" "arm64"
+}
+'''
+run = '''
+trivy image --input "build/$usage_image/$usage_arch/image.tar" \
+  --scanners vuln --severity HIGH,CRITICAL --exit-code 1 \
+  --format json --output "build/$usage_image/$usage_arch/trivy.json"
+'''
 
 [tasks."packages:build"]
-description = "Build a melange recipe with a local signing key"
-run = "bash scripts/package.sh build"
+description = "Build a signed melange source package with Docker"
+usage = '''
+arg "<recipe>"
+flag "--arch <arch>" default="x86_64" {
+  choices "x86_64" "aarch64"
+}
+'''
+run = '''
+mkdir -p build/keys build/packages
+melange keygen "build/keys/melange-$usage_arch.rsa"
+SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) melange build "$usage_recipe" \
+  --arch "$usage_arch" --runner docker \
+  --signing-key "build/keys/melange-$usage_arch.rsa" --out-dir "$PWD/build/packages" \
+  --source-dir "$(dirname "$usage_recipe")" --generate-provenance
+cp "build/keys/melange-$usage_arch.rsa.pub" "build/packages/$usage_arch/"
+'''
 
 [tasks."packages:test"]
-description = "Test the resulting melange package"
-run = "bash scripts/package.sh test"
+description = "Test the packaged application in its runtime environment"
+usage = '''
+arg "<recipe>"
+flag "--arch <arch>" default="x86_64" {
+  choices "x86_64" "aarch64"
+}
+'''
+run = '''
+melange test "$usage_recipe" --arch "$usage_arch" --runner docker \
+  --repository-append "$PWD/build/packages" \
+  --keyring-append "build/keys/melange-$usage_arch.rsa.pub" \
+  --source-dir "$(dirname "$usage_recipe")"
+'''

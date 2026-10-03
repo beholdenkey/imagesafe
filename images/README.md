@@ -1,14 +1,16 @@
 # Image authoring
 
-Each `images/<name>/apko.yaml` includes `images/base/common.yaml`. Run apko from the
-repository root: include paths are relative to that working directory.
-The shared configuration owns nonroot accounts, architectures, environment,
-workspace permissions, and project metadata.
+Each `images/<name>/` directory contains an `apko.yaml`, `metadata.yaml`, `README.md`,
+and declarative `tests/main.yaml`. Wolfi images also have a committed `apko.lock.json`.
+Source packages use an adjacent `melange.yaml`.
 
-Use Wolfi packages for the current image catalog. Keep application images minimal;
-do not add `wolfi-base` just to obtain a shell. Avoid combining Wolfi/glibc and
-Alpine/musl packages in one image. If an Alpine image is needed later, give it its own
-repository/keyring configuration and choose a supported stable release rather than edge.
+Run apko from the repository root. Every recipe includes `images/base/common.yaml`,
+which owns accounts, architectures, environment, workspace permissions, and project
+annotations. Application images use only their runtime packages and certificates.
+
+Keep Wolfi/glibc packages together. Avoid combining them with Alpine/musl packages.
+If an Alpine image is needed, give it separate repositories/keyrings and a supported
+stable release.
 
 ```yaml
 include: images/base/common.yaml
@@ -29,22 +31,34 @@ annotations:
   org.opencontainers.image.documentation: https://github.com/owner/application
 ```
 
-Add a matching `images/catalog.json` entry with the APK package name and smoke-test
-arguments. A package glob handles Wolfi's versioned package names, such as `opentofu-*`.
-The helper rejects application-version differences between architectures.
+Put the exact APK package name in `metadata.yaml`. The workflow reads the resolved
+application version from the lock using yq and jq, checks agreement between architectures,
+and passes it to apko's OCI annotations and Docker's metadata action.
 
-Do not duplicate an upstream version in an OCI annotation or pin an upstream GitHub
-release as though it were an APK version. APK releases include packaging revisions;
-package availability can lag upstream releases. The APK lock is the version source.
-Refresh it with `mise run images:lock <name>` and test both target architectures.
+Add the image to [.github/image-filters.yaml](../.github/image-filters.yaml) and the
+nightly/manual image list in the workflow. The paths-filter action produces the build
+matrix. Use `some-with-excludes` so README edits stay outside the image build selection.
 
-Nightly runs intentionally refresh all packages, including application updates. Consumers
-that need change control should use image digests rather than mutable version tags.
-A failed lock refresh, smoke test, or vulnerability gate leaves the previously published
-images in place. Unsupported architectures must fail instead of silently disappearing.
+## Tests and locks
 
-Every new image needs a useful smoke test. OpenTofu also runs provider-free initialization
-and validation in a writable nonroot workspace. Add application-specific functional tests
-when a version check is insufficient to catch the integration failures you expect.
+Add Container Structure Tests for the application command and image entrypoint/CMD.
+Shared tests in `images/base/tests.yaml` verify the nonroot user, home, workspace,
+and certificates. Test files use Container Structure Tests' version 2 schema.
 
-For packages that are not available upstream, see [melange packaging](../docs/packaging.md).
+```bash
+mise run images:lock hurl
+mise run images:build hurl --arch amd64
+mise run images:test hurl --arch amd64
+mise run images:scan hurl --arch amd64
+```
+
+Repeat runtime tests on an ARM host or rely on the native ARM CI job. Add functional
+checks when a version command cannot catch the expected integration failures.
+OpenTofu's fixture in `tests/workspace/` exercises initialization and validation.
+
+APK revisions differ from upstream releases. Keep exact dependency versions in the
+lock rather than duplicating them in annotations. Nightly/manual builds refresh the
+package set; PRs use committed Wolfi locks. Failed resolution, tests, or vulnerability
+scans prevent publication.
+
+For signed source packages and per-build locks, see [melange packaging](../docs/packaging.md).
